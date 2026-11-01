@@ -53,6 +53,10 @@ def pipeline(lang: str):
 
 
 def synthesize(text: str, voice: str, lang: str) -> np.ndarray:
+    # A full stop makes Kokoro say a single word as a finished sentence, which is clearer
+    # (checked with speech recognition over a whole deck).
+    if text[-1:].isalnum():
+        text += "."
     chunks = [audio for _, _, audio in pipeline(lang)(text, voice=voice)]
     return np.concatenate([np.asarray(c) for c in chunks])
 

@@ -84,7 +84,7 @@ them is breaking in practice, because no deck has been shipped yet, so it stays 
   "language": "en-GB",
   "voices": [
     { "id": "female", "gender": "female", "lang": "en-GB", "engine": "kokoro", "voice": "bf_emma", "credit": "Kokoro-82M (Apache-2.0)" },
-    { "id": "male", "gender": "male", "lang": "en-GB", "engine": "kokoro", "voice": "bm_george", "credit": "Kokoro-82M (Apache-2.0)" }
+    { "id": "male", "gender": "male", "lang": "en-GB", "engine": "kokoro", "voice": "bm_lewis", "credit": "Kokoro-82M (Apache-2.0)" }
   ],
   "fields": [
     { "id": "image", "type": "image" },
@@ -314,7 +314,7 @@ The deck's pictures are © Noordhoff, so they shouldn't go in a public repo or a
 **D5. Pronunciation engine** (Q4)
 - *Default:* **Kokoro-82M**, run locally with uv. Apache-2.0 model and code, so the audio can be
   redistributed with no credit required (I'll credit it anyway); very natural; has British *and*
-  American female and male voices (`bf_emma`, `bf_isabella`, `bm_george`, `bm_lewis`, `af_heart`,
+  American female and male voices (`bf_emma`, `bf_isabella`, `bm_lewis`, `bm_lewis`, `af_heart`,
   `am_michael`, …). *Cons:* needs `espeak-ng` (Homebrew) for the pronunciation of unknown words;
   English only (not a problem: only the English words need audio).
 - *Alternative:* **Piper**. *Pros:* small and fast; has Dutch voices too. *Cons:* clearly more
@@ -486,7 +486,7 @@ because it's imported on the device.
 | Q1 | Name | ✅ **Florien** |
 | Q2 | MVP before the test | ✅ Build it all, in the milestone order above |
 | Q3 | Copyrighted decks | ✅ **Private deck repo** (`jeroenjanssens/flash-decks`), plus zip import and export |
-| Q4 | English variant and engine | ✅ **British English, Kokoro**; voices picked on a preview page (defaults `bf_emma` and `bm_george`) |
+| Q4 | English variant and engine | ✅ **British English, Kokoro**; voices picked on a preview page (defaults `bf_emma` and `bm_lewis`) |
 | Q5 | Practice modes and the schedule | ✅ **No effect** on the schedule; logged for stats and the daily goal |
 | Q6 | Grading in Learn | ✅ **Automatic**, graduated choose → type; self-grading available as a setting |
 | Q7 | Templates | ✅ **All six templates** (including `english-to-dutch`), **selectable per profile and deck**. On by default: `picture-to-word` and `dutch-to-english` |

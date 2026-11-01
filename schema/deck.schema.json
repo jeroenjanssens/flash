@@ -61,10 +61,7 @@
     "collection": {
       "description": "Groups decks that belong together, like the themes of one school book.",
       "type": "object",
-      "required": [
-        "id",
-        "title"
-      ],
+      "required": ["id", "title"],
       "properties": {
         "id": {
           "type": "string",
@@ -174,22 +171,14 @@
     },
     "field": {
       "type": "object",
-      "required": [
-        "id",
-        "type"
-      ],
+      "required": ["id", "type"],
       "properties": {
         "id": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9-]*$"
         },
         "type": {
-          "enum": [
-            "text",
-            "image",
-            "audio",
-            "video"
-          ],
+          "enum": ["text", "image", "audio", "video"],
           "description": "video is reserved: valid, but not shown by the app yet."
         },
         "lang": {
@@ -217,19 +206,13 @@
         }
       },
       "then": {
-        "required": [
-          "lang"
-        ]
+        "required": ["lang"]
       },
       "additionalProperties": false
     },
     "template": {
       "type": "object",
-      "required": [
-        "id",
-        "prompt",
-        "answer"
-      ],
+      "required": ["id", "prompt", "answer"],
       "properties": {
         "id": {
           "type": "string",
@@ -266,11 +249,7 @@
           "minItems": 1,
           "uniqueItems": true,
           "items": {
-            "enum": [
-              "type",
-              "choose",
-              "flip"
-            ]
+            "enum": ["type", "choose", "flip"]
           }
         },
         "enabled": {
@@ -283,10 +262,7 @@
     },
     "card": {
       "type": "object",
-      "required": [
-        "id",
-        "fields"
-      ],
+      "required": ["id", "fields"],
       "properties": {
         "id": {
           "description": "Unique within the deck and never changes: progress is stored per card id.",
@@ -333,9 +309,7 @@
     },
     "textValue": {
       "type": "object",
-      "required": [
-        "text"
-      ],
+      "required": ["text"],
       "properties": {
         "text": {
           "type": "string",
@@ -370,9 +344,7 @@
     },
     "mediaValue": {
       "type": "object",
-      "required": [
-        "src"
-      ],
+      "required": ["src"],
       "properties": {
         "src": {
           "description": "Path relative to deck.json, inside media/.",
@@ -412,10 +384,7 @@
     },
     "voice": {
       "type": "object",
-      "required": [
-        "id",
-        "lang"
-      ],
+      "required": ["id", "lang"],
       "properties": {
         "id": {
           "type": "string",
@@ -425,11 +394,7 @@
           "$ref": "#/$defs/localized"
         },
         "gender": {
-          "enum": [
-            "female",
-            "male",
-            "other"
-          ]
+          "enum": ["female", "male", "other"]
         },
         "lang": {
           "$ref": "#/$defs/lang"
@@ -459,18 +424,13 @@
         },
         {
           "type": "object",
-          "required": [
-            "field"
-          ],
+          "required": ["field"],
           "properties": {
             "field": {
               "type": "string"
             },
             "as": {
-              "enum": [
-                "text",
-                "audio"
-              ]
+              "enum": ["text", "audio"]
             }
           },
           "additionalProperties": false

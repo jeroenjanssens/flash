@@ -50,7 +50,7 @@ is complete, …). The ideas come from Anki:
   "voices": [
     { "id": "female", "gender": "female", "lang": "en-GB", "engine": "kokoro", "voice": "bf_emma",
       "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0" },
-    { "id": "male", "gender": "male", "lang": "en-GB", "engine": "kokoro", "voice": "bm_george",
+    { "id": "male", "gender": "male", "lang": "en-GB", "engine": "kokoro", "voice": "bm_lewis",
       "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0" }
   ],
   "fields": [
