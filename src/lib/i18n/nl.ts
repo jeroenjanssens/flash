@@ -19,6 +19,7 @@ export const nl = {
   'common.listen': 'Luister',
   'common.save': 'Opslaan',
   'common.start': 'Start',
+  'common.undo': 'Laatste antwoord ongedaan maken (U)',
   'common.stop': 'Stoppen',
 
   'profiles.welcome': 'Welkom bij Flash!',
@@ -178,6 +179,7 @@ export const nl = {
   'stats.forecast': 'Wat eraan komt',
   'stats.todayShort': 'nu',
   'stats.hardest': 'Moeilijkste woorden',
+  'stats.practiseHardest': 'Oefen deze',
   'stats.wrongTimes': '{count|1 keer fout|{count} keer fout}',
   'stats.noMistakes': 'Nog geen fouten!',
   'stats.misspellings': 'Spelling',

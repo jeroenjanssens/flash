@@ -143,6 +143,15 @@ export class Session {
   get current(): SessionItem | undefined {
     return this.queue[0]
   }
+  /** The state of the session, to go back to (undo). */
+  snapshot(): { queue: SessionItem[]; repeats: Map<string, number>; done: number } {
+    return { queue: [...this.queue], repeats: new Map(this.repeats), done: this.done }
+  }
+  restore(snap: ReturnType<Session['snapshot']>): void {
+    this.queue.splice(0, this.queue.length, ...snap.queue)
+    this.repeats = new Map(snap.repeats)
+    this.done = snap.done
+  }
   get left(): number {
     return this.queue.length
   }

@@ -17,6 +17,7 @@ export const en = {
   'common.listen': 'Listen',
   'common.save': 'Save',
   'common.start': 'Start',
+  'common.undo': 'Undo the last answer (U)',
   'common.stop': 'Stop',
 
   'profiles.welcome': 'Welcome to Flash!',
@@ -176,6 +177,7 @@ export const en = {
   'stats.forecast': 'Coming up',
   'stats.todayShort': 'today',
   'stats.hardest': 'Hardest words',
+  'stats.practiseHardest': 'Practise these',
   'stats.wrongTimes': '{count|wrong once|wrong {count} times}',
   'stats.noMistakes': 'No mistakes yet!',
   'stats.misspellings': 'Spelling',

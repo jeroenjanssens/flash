@@ -203,3 +203,21 @@ test('the interface can switch to English', async ({ page }) => {
   await page.goto('/#/')
   await expect(page.getByRole('link', { name: /Start learning/ })).toBeVisible()
 })
+
+test('undo takes back the last answer in Learn', async ({ page }) => {
+  await createProfile(page)
+  await page.getByRole('link', { name: /Start met leren/ }).click()
+  await page.getByRole('button', { name: /Begrepen/ }).click()
+  await expect(page.locator('.session .right')).toContainText('20')
+  await answer(page, false)
+  await expect(page.getByText('Het antwoord is')).toBeVisible()
+  await page.getByRole('button', { name: /ongedaan maken/ }).click()
+  // The same question again, unanswered, and nothing was logged.
+  await expect(page.getByText('Het antwoord is')).not.toBeVisible()
+  await expect(page.locator('.option.is-wrong')).toHaveCount(0)
+  const log = await page.evaluate(() => {
+    const id = localStorage.getItem('flash:current')
+    return JSON.parse(localStorage.getItem(`flash:save:${id}`) ?? '{}').log?.length ?? 0
+  })
+  expect(log).toBe(0)
+})

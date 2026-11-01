@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
+  import Icon from '../components/Icon.svelte'
   import Intro from '../components/Intro.svelte'
   import Question from '../components/Question.svelte'
   import SessionBar from '../components/SessionBar.svelte'
@@ -58,8 +59,32 @@
       : 'choose',
   )
 
+  /** One step back: the state just before the last answer. */
+  interface UndoPoint {
+    item: SessionItem
+    record: ItemRecord | undefined
+    log: number
+    session: ReturnType<Session['snapshot']>
+    right: number
+    wrong: number
+    learned: number
+    mistakes: [string, { loaded: LoadedDeck; card: Card }][]
+  }
+  let undoPoint = $state.raw<UndoPoint>()
+
   function onanswer(answer: Answer) {
     if (!current) return
+    const old = recordOf(s.decks[current.deck.id], current.card.id, current.template.id)
+    undoPoint = {
+      item: current,
+      record: old && ($state.snapshot(old) as ItemRecord),
+      log: s.log.length,
+      session: session.snapshot(),
+      right,
+      wrong,
+      learned,
+      mistakes: [...mistakes.entries()],
+    }
     const before = levelOf(recordOf(s.decks[current.deck.id], current.card.id, current.template.id))
     pending = applyAnswer(s, current, answer, 'learn', Date.now())
     if (answer.correct) right++
@@ -84,8 +109,37 @@
     }
   }
 
+  function undo() {
+    const u = undoPoint
+    if (!u) return
+    const items = s.decks[u.item.deck.id]?.items[u.item.card.id]
+    if (items) {
+      if (u.record) items[u.item.template.id] = u.record
+      else delete items[u.item.template.id]
+    }
+    s.log.splice(u.log)
+    session.restore(u.session)
+    ;({ right, wrong, learned } = u)
+    mistakes.clear()
+    for (const [k, v] of u.mistakes) mistakes.set(k, v)
+    pending = undefined
+    current = u.item
+    showIntro = false
+    finished = false
+    sessionState.active = true
+    undoPoint = undefined
+    key++
+    audio.sfx('tap')
+  }
+
+  function onkeydown(e: KeyboardEvent) {
+    if (e.key === 'u' && !(e.target instanceof HTMLInputElement) && !e.metaKey && !e.ctrlKey) undo()
+  }
+
   const back = $derived(deckIds?.length === 1 ? href(`deck/${deckIds[0]}`) : href(''))
 </script>
+
+<svelte:window {onkeydown} />
 
 {#if finished}
   <main class="page narrow">
@@ -115,6 +169,11 @@
               })}>{t('summary.practiseMistakes')}</a
             >
           {/if}
+          {#if undoPoint}
+            <button class="btn big ghost" onclick={undo}
+              ><Icon name="undo" />{t('common.undo')}</button
+            >
+          {/if}
           <a class="btn primary big" href={back}>{t('common.done')}</a>
         {/snippet}
       </Summary>
@@ -126,7 +185,21 @@
       progress={session.done / (session.done + session.left)}
       onclose={() => navigate(back.slice(2))}
     >
-      {#snippet right()}{session.left}{/snippet}
+      {#snippet right()}
+        <span class="right-bar">
+          {#if undoPoint}
+            <button
+              class="btn icon ghost"
+              onclick={undo}
+              aria-label={t('common.undo')}
+              title={t('common.undo')}
+            >
+              <Icon name="undo" />
+            </button>
+          {/if}
+          <span>{session.left}</span>
+        </span>
+      {/snippet}
     </SessionBar>
     <main class="stage">
       {#key key}
@@ -149,6 +222,11 @@
 {/if}
 
 <style>
+  .right-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
   .session {
     min-height: 100dvh;
     display: grid;

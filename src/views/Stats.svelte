@@ -123,7 +123,19 @@
 
   <div class="two">
     <section class="panel">
-      <h2>{t('stats.hardest')}</h2>
+      <div class="spread">
+        <h2>{t('stats.hardest')}</h2>
+        {#if hardest(deck, log).length}
+          <a
+            class="btn"
+            href={href(`deck/${deck.id}/practice/type`, {
+              cards: hardest(deck, log)
+                .map((h) => h.card.id)
+                .join(','),
+            })}><Icon name="keyboard" />{t('stats.practiseHardest')}</a
+          >
+        {/if}
+      </div>
       {#each hardest(deck, log) as h (h.card.id)}
         <div class="trouble">
           {#if image && h.card.fields[image]}<div class="thumb">
