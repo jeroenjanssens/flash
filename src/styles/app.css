@@ -202,6 +202,7 @@ img {
     box-shadow 0.15s ease;
   user-select: none;
   -webkit-user-select: none;
+  white-space: nowrap;
 }
 
 .btn:hover {

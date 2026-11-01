@@ -73,10 +73,13 @@ export function checkTyped(input: string, value: TextValue): Check {
     if (dist < bestDistance) [best, bestDistance] = [o, dist]
   }
   const close = typed.length > 0 && bestDistance <= tolerance(compact(best).length)
+  // Letter by letter only helps when it's nearly right; for another word it's just noise.
+  const similar =
+    typed.length > 0 && bestDistance <= Math.max(2, Math.ceil(compact(best).length / 3))
   return {
     verdict: close ? 'close' : 'wrong',
     expected: best,
-    diff: diffLetters(normalize(input), normalize(best)),
+    diff: similar ? diffLetters(normalize(input), normalize(best)) : [],
   }
 }
 

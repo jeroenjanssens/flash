@@ -76,3 +76,10 @@ describe('format', () => {
     expect(format('{days|day|days} {x}', { days: 2 })).toBe('days {x}')
   })
 })
+
+describe('checkTyped diff', () => {
+  it('only explains letters for nearly right answers', () => {
+    expect(checkTyped('blu', { text: 'pink' }).diff).toEqual([])
+    expect(checkTyped('fridj', { text: 'fridge' }).diff.length).toBeGreaterThan(1)
+  })
+})
