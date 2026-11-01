@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte'
+  import { onMount, tick, untrack } from 'svelte'
   import { fieldOf, isPictureAnswer, langOf, textOf } from '../lib/deck/items'
   import { promptField } from '../lib/deck/parse'
   import type { Card, Method, Template, Voice } from '../lib/deck/types'
@@ -67,7 +67,9 @@
   let promptViews = $state<FieldView[]>([])
   let sayButton = $state<FieldView>()
 
-  const options = $derived(
+  // Drawn once per question: the options must stay where they are after answering, even when
+  // the page around the question changes (e.g. a wrong card is added to the end of the queue).
+  const options = untrack(() =>
     method === 'choose' ? chooseOptions(deck, card, template, 4, Math.random, extraCards) : [],
   )
 

@@ -248,3 +248,34 @@ test('the Learn counter and progress bar move on', async ({ page }) => {
   expect(Number(await bar.getAttribute('aria-valuenow'))).toBeGreaterThan(before)
   await expect(page.locator('.session .right')).not.toHaveText('20')
 })
+
+test('the options stay in place after a wrong answer', async ({ page }) => {
+  await createProfile(page)
+  await page.goto(`/#/deck/${deck.id}/practice/listen`)
+  await page.getByRole('button', { name: /Start met/ }).click()
+  const options = page.locator('.option img')
+  await expect(options).toHaveCount(4)
+  const before = await options.evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')))
+  // Pick a wrong picture: the clip plays, so find the right one from the card shown afterwards.
+  await page.locator('.option').first().click()
+  if (
+    await page
+      .locator('.option.is-right')
+      .first()
+      .evaluate((el) => el === el.parentElement!.firstElementChild)
+  ) {
+    // The first was right: go to the next question and pick another one.
+    await page.getByRole('button', { name: /Verder/ }).click()
+    const next = await options.evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')))
+    await page.locator('.option').nth(1).click()
+    await page.waitForTimeout(300)
+    expect(await options.evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')))).toEqual(
+      next,
+    )
+    return
+  }
+  await page.waitForTimeout(300)
+  expect(await options.evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')))).toEqual(
+    before,
+  )
+})
