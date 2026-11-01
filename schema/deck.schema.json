@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jeroenjanssens/flash/schema/deck.schema.json",
+  "title": "Flash deck",
+  "description": "A deck of flashcards for Flash. See docs/deck-format.md.",
+  "type": "object",
+  "required": [
+    "format",
+    "formatVersion",
+    "id",
+    "revision",
+    "title",
+    "language",
+    "fields",
+    "templates",
+    "cards"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "format": { "const": "flash-deck" },
+    "formatVersion": { "const": 1 },
+    "id": {
+      "description": "Stable, globally unique id (a UUID). Never changes, so a re-imported deck updates the existing one.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "revision": {
+      "description": "Increases with every change to the content, so an import can tell which copy is newer.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "title": { "$ref": "#/$defs/localized" },
+    "description": { "$ref": "#/$defs/localized" },
+    "collection": {
+      "description": "Groups decks that belong together, like the themes of one school book.",
+      "type": "object",
+      "required": ["id", "title"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "title": { "$ref": "#/$defs/localized" },
+        "position": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "language": {
+      "description": "The language that is being learned (BCP 47), e.g. for text-to-speech.",
+      "$ref": "#/$defs/lang"
+    },
+    "tags": { "$ref": "#/$defs/tags" },
+    "source": {
+      "description": "Where the content comes from.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "publisher": { "type": "string" },
+        "author": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "copyright": { "type": "string" },
+        "license": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "fields": {
+      "description": "What every card in this deck contains (like an Anki note type).",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/field" }
+    },
+    "templates": {
+      "description": "Ways to study a card. Every card is studied once per enabled template, each with its own schedule.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/template" }
+    },
+    "cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/card" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "lang": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+    },
+    "localized": {
+      "description": "Text for the interface, in one or more languages, keyed by BCP 47 tag.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/lang" },
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+    },
+    "field": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "type": { "enum": ["text", "image", "audio"] },
+        "lang": {
+          "description": "Language of a text field (required for text). A value can override it.",
+          "$ref": "#/$defs/lang"
+        },
+        "name": { "$ref": "#/$defs/localized" },
+        "optional": { "type": "boolean", "default": false }
+      },
+      "if": { "properties": { "type": { "const": "text" } } },
+      "then": { "required": ["lang"] },
+      "additionalProperties": false
+    },
+    "template": {
+      "type": "object",
+      "required": ["id", "front", "back"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "$ref": "#/$defs/localized" },
+        "front": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "back": { "type": "array", "items": { "type": "string" } },
+        "answer": {
+          "description": "The text field to type when answering by typing.",
+          "type": "string"
+        },
+        "enabled": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
+    },
+    "card": {
+      "type": "object",
+      "required": ["id", "fields"],
+      "properties": {
+        "id": {
+          "description": "Unique within the deck and never changes: progress is stored per card id.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{6,}$"
+        },
+        "ref": {
+          "description": "Reference in the source, e.g. the number printed on the card.",
+          "type": "string"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [{ "$ref": "#/$defs/textValue" }, { "$ref": "#/$defs/mediaValue" }]
+          }
+        },
+        "tags": { "$ref": "#/$defs/tags" },
+        "suspended": { "type": "boolean", "default": false }
+      },
+      "additionalProperties": false
+    },
+    "textValue": {
+      "type": "object",
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "lang": { "$ref": "#/$defs/lang" },
+        "accept": {
+          "description": "Other answers that count as correct when typing.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "hint": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "mediaValue": {
+      "type": "object",
+      "required": ["src"],
+      "properties": {
+        "src": {
+          "description": "Path relative to deck.json, inside media/.",
+          "type": "string",
+          "pattern": "^media/[^/]+$"
+        },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "alt": { "$ref": "#/$defs/localized" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

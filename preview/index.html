@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flash · deck preview</title>
+    <style>
+      :root {
+        --bg: #f4f1ea;
+        --card: #fff;
+        --ink: #23201b;
+        --muted: #8a8378;
+        --accent: #e8590c;
+        --warn: #c92a2a;
+        font-family: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      body { margin: 0 auto; max-width: 1200px; padding: 2rem 1.5rem 4rem; }
+      h1 { margin: 0; font-size: 2rem; }
+      .sub { color: var(--muted); margin: 0.25rem 0 1rem; }
+      .meta { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; font-size: 0.9rem;
+        background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; }
+      .meta dt { color: var(--muted); }
+      .meta dd { margin: 0; }
+      .bar { display: flex; gap: 0.5rem; align-items: center; margin: 1.5rem 0 1rem; flex-wrap: wrap; }
+      button { font: inherit; border: 0; border-radius: 999px; padding: 0.4rem 0.9rem; background: #e6e0d4; cursor: pointer; }
+      button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+      .problems { color: #2b8a3e; font-weight: 600; }
+      .problems.bad { color: var(--warn); }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+      .card { background: var(--card); border-radius: 16px; box-shadow: 0 2px 8px #0000000f;
+        display: flex; flex-direction: column; overflow: hidden; cursor: pointer; }
+      .face { height: 180px; display: grid; place-items: center; padding: 1rem; }
+      .face img { max-width: 100%; max-height: 148px; object-fit: contain; }
+      .word { font-size: 1.9rem; font-weight: 700; text-align: center; }
+      .translation { color: var(--muted); font-size: 1rem; text-align: center; margin-top: 0.2rem; }
+      .info { border-top: 1px solid #eee; padding: 0.5rem 0.9rem; font-size: 0.78rem; color: var(--muted);
+        display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+      .chip { background: #f1ede5; border-radius: 6px; padding: 0.05rem 0.4rem; }
+      .chip.lang { background: #fff0e6; color: var(--accent); font-weight: 600; }
+      .ref { font-weight: 700; color: var(--ink); }
+      .face.back { height: 110px; }
+      .back { display: none; }
+      .both .back { display: grid; }
+      .both .front { border-bottom: 1px dashed #e6e0d4; }
+      .grid:not(.both) .flipped .front { display: none; }
+      .grid:not(.both) .flipped .back { display: grid; }
+      pre { background: var(--card); border-radius: 12px; padding: 1rem; overflow: auto; font-size: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <h1 id="title">Loading…</h1>
+    <p class="sub" id="sub"></p>
+    <dl class="meta" id="meta"></dl>
+    <div class="bar">
+      <button id="both" aria-pressed="true">Both sides</button>
+      <button id="fronts" aria-pressed="false">Fronts (click to flip)</button>
+      <button id="json" aria-pressed="false">Raw JSON</button>
+      <span class="problems" id="problems"></span>
+    </div>
+    <main class="grid both" id="grid"></main>
+    <pre id="raw" hidden></pre>
+
+    <script type="module">
+      const params = new URLSearchParams(location.search);
+      const deckUrl = new URL(params.get("deck") ?? "../decks/stepping-stones-3b-theme-1/deck.json", location.href);
+      const deck = await (await fetch(deckUrl)).json();
+      const $ = (id) => document.getElementById(id);
+      const loc = (o) => (o ? Object.entries(o).map(([l, t]) => `${t} (${l})`).join(" · ") : "—");
+      const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls ?? "", textContent: text ?? "" });
+      const fieldDef = Object.fromEntries(deck.fields.map((f) => [f.id, f]));
+
+      document.title = `Flash · ${deck.title.en ?? Object.values(deck.title)[0]}`;
+      $("title").textContent = loc(deck.title);
+      $("sub").textContent = deck.collection ? `${loc(deck.collection.title)} · #${deck.collection.position}` : "";
+      const meta = {
+        Description: loc(deck.description),
+        Language: deck.language,
+        Cards: deck.cards.length,
+        Fields: deck.fields.map((f) => `${f.id} (${f.type}${f.lang ? ", " + f.lang : ""})`).join(", "),
+        Templates: deck.templates.map((t) => `${t.id}${t.enabled === false ? " (off)" : ""}`).join(", "),
+        Tags: (deck.tags ?? []).join(", "),
+        Source: [deck.source?.title, deck.source?.copyright].filter(Boolean).join(" — "),
+        "Id / revision": `${deck.id} / ${deck.revision}`,
+      };
+      for (const [k, v] of Object.entries(meta)) $("meta").append(el("dt", "", k), el("dd", "", String(v)));
+
+      // Checks: missing required fields, duplicate ids/words, uppercase, images that fail to load.
+      const problems = [];
+      const seen = new Set();
+      for (const c of deck.cards) {
+        if (seen.has(c.id)) problems.push(`duplicate id ${c.id}`);
+        seen.add(c.id);
+        for (const f of deck.fields) if (!f.optional && !c.fields[f.id]) problems.push(`${c.ref}: no ${f.id}`);
+        for (const [id, v] of Object.entries(c.fields))
+          if (v.text && v.text !== v.text.toLowerCase()) problems.push(`${c.ref}: uppercase in “${v.text}”`);
+      }
+      const words = deck.cards.map((c) => c.fields.word?.text);
+      words.forEach((w, i) => words.indexOf(w) !== i && problems.push(`duplicate word “${w}”`));
+      const showProblems = () => {
+        $("problems").textContent = problems.length ? `⚠ ${problems.join("; ")}` : "✓ no problems found";
+        $("problems").classList.toggle("bad", problems.length > 0);
+      };
+
+      const tpl = deck.templates.find((t) => t.enabled !== false) ?? deck.templates[0];
+      const renderFace = (card, ids, cls) => {
+        const face = el("div", `face ${cls}`);
+        const box = el("div");
+        for (const id of ids) {
+          const v = card.fields[id];
+          if (!v) continue;
+          if (fieldDef[id].type === "image") {
+            const img = Object.assign(document.createElement("img"), { src: new URL(v.src, deckUrl), alt: "" });
+            img.onerror = () => { problems.push(`${card.ref}: image ${v.src} missing`); showProblems(); };
+            face.append(img);
+            return face;
+          }
+          const t = el("div", id === tpl.answer ? "word" : "translation", v.text);
+          t.lang = v.lang ?? fieldDef[id].lang;
+          box.append(t);
+        }
+        face.append(box);
+        return face;
+      };
+
+      for (const c of deck.cards) {
+        const card = el("article", "card");
+        card.append(renderFace(c, tpl.front, "front"), renderFace(c, tpl.back, "back"));
+        const info = el("div", "info");
+        info.append(el("span", "ref", c.ref ?? ""));
+        for (const [id, v] of Object.entries(c.fields))
+          if (v.text) info.append(el("span", "chip lang", `${id}: ${v.lang ?? fieldDef[id].lang}`));
+        if (c.fields.word?.accept) info.append(el("span", "chip", `also: ${c.fields.word.accept.join(", ")}`));
+        for (const t of c.tags ?? []) info.append(el("span", "chip", `#${t}`));
+        const img = Object.values(c.fields).find((v) => v.src);
+        if (img) info.append(el("span", "chip", `${img.width}×${img.height}`));
+        card.append(info);
+        card.onclick = () => card.classList.toggle("flipped");
+        $("grid").append(card);
+      }
+      showProblems();
+      $("raw").textContent = JSON.stringify(deck, null, 2);
+
+      const modes = { both: "both", fronts: "fronts", json: "json" };
+      for (const m of Object.keys(modes))
+        $(m).onclick = () => {
+          for (const n of Object.keys(modes)) $(n).setAttribute("aria-pressed", String(n === m));
+          $("grid").hidden = m === "json";
+          $("raw").hidden = m !== "json";
+          $("grid").classList.toggle("both", m === "both");
+        };
+    </script>
+  </body>
+</html>
