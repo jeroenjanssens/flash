@@ -80,3 +80,21 @@ describe('queue', () => {
     expect(nextStage('type', false, 'type')).toBe('choose')
   })
 })
+
+describe('session progress', () => {
+  it('moves on every answer and counts finished questions', () => {
+    const deck = testDeck()
+    const save = emptySave('p')
+    save.settings.newPerDay = 2
+    const s = new Session(buildQueue([deck], save, NOW, 50))
+    expect([s.total, s.remaining, s.progress]).toEqual([4, 4, 0])
+    // A first good answer: the question comes back, so half done.
+    s.next(grade(undefined, 3, NOW), NOW)
+    expect(s.remaining).toBe(4)
+    expect(s.progress).toBe(0.125)
+    // A review that's due in days: finished.
+    s.next({ ...grade(undefined, 4, NOW), due: NOW + 5 * DAY }, NOW)
+    expect(s.remaining).toBe(3)
+    expect(s.progress).toBe(0.375)
+  })
+})

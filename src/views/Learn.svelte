@@ -33,6 +33,10 @@
     ),
   )
   const total = session.left
+  // The session object isn't reactive: mirror what the screen shows.
+  let progress = $state(0)
+  let left = $state(session.remaining)
+  const sync = () => ([progress, left] = [session.progress, session.remaining])
 
   let current = $state<SessionItem | undefined>(session.current)
   let showIntro = $state(!!session.current?.intro)
@@ -98,6 +102,7 @@
 
   function next() {
     session.next(pending, Date.now())
+    sync()
     pending = undefined
     current = session.current
     showIntro = !!current?.intro
@@ -119,6 +124,7 @@
     }
     s.log.splice(u.log)
     session.restore(u.session)
+    sync()
     ;({ right, wrong, learned } = u)
     mistakes.clear()
     for (const [k, v] of u.mistakes) mistakes.set(k, v)
@@ -181,10 +187,7 @@
   </main>
 {:else if current && loaded}
   <div class="session" style:--deck={current.deck.color}>
-    <SessionBar
-      progress={session.done / (session.done + session.left)}
-      onclose={() => navigate(back.slice(2))}
-    >
+    <SessionBar {progress} onclose={() => navigate(back.slice(2))}>
       {#snippet right()}
         <span class="right-bar">
           {#if undoPoint}
@@ -197,7 +200,7 @@
               <Icon name="undo" />
             </button>
           {/if}
-          <span>{session.left}</span>
+          <span>{left}</span>
         </span>
       {/snippet}
     </SessionBar>

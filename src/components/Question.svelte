@@ -347,6 +347,10 @@
 
 <style>
   .question {
+    background: var(--surface);
+    border-radius: 28px;
+    box-shadow: var(--shadow-lg);
+    padding: clamp(20px, 4vw, 36px) clamp(16px, 4vw, 40px);
     display: grid;
     gap: 20px;
     justify-items: center;

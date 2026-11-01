@@ -221,3 +221,30 @@ test('undo takes back the last answer in Learn', async ({ page }) => {
   })
   expect(log).toBe(0)
 })
+
+test('the Learn counter and progress bar move on', async ({ page }) => {
+  await createProfile(page)
+  await page.getByRole('link', { name: /Start met leren/ }).click()
+  const bar = page.getByRole('progressbar')
+  await expect(page.locator('.session .right')).toContainText('20')
+  await expect(bar).toHaveAttribute('aria-valuenow', '0')
+  await page.getByRole('button', { name: /Begrepen/ }).click()
+  await answer(page)
+  await page.getByRole('button', { name: /Verder/ }).click()
+  // A new card comes back once (its learning step), so the bar moves before the number does.
+  await expect(bar).not.toHaveAttribute('aria-valuenow', '0')
+  const before = Number(await bar.getAttribute('aria-valuenow'))
+  // New cards come back once to be typed; after about as many answers as new cards, the first
+  // questions are finished and the number goes down.
+  for (let i = 0; i < 10; i++) {
+    await page.waitForTimeout(150)
+    if (await page.getByRole('button', { name: /Begrepen/ }).isVisible()) {
+      await page.getByRole('button', { name: /Begrepen/ }).click()
+      await page.waitForTimeout(150)
+    }
+    await answer(page)
+    await page.getByRole('button', { name: /Verder/ }).click()
+  }
+  expect(Number(await bar.getAttribute('aria-valuenow'))).toBeGreaterThan(before)
+  await expect(page.locator('.session .right')).not.toHaveText('20')
+})

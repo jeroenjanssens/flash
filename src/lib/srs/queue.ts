@@ -133,39 +133,68 @@ export function nextStage(
  * The questions of a running session. An item that's due again soon (a learning step, after a
  * wrong answer) comes back a few questions later, at most three extra times.
  */
+const sessionKey = (item: SessionItem) => `${item.deck.id}/${item.card.id}/${item.template.id}`
+
 export class Session {
   readonly queue: SessionItem[]
   private repeats = new Map<string, number>()
+  /** Questions that are finished for this session (they won't come back). */
+  private finished = new Set<string>()
+  /** The different questions in the session. */
+  readonly total: number
   done = 0
   constructor(items: SessionItem[]) {
     this.queue = [...items]
+    this.total = new Set(items.map(sessionKey)).size
   }
   get current(): SessionItem | undefined {
     return this.queue[0]
   }
   /** The state of the session, to go back to (undo). */
-  snapshot(): { queue: SessionItem[]; repeats: Map<string, number>; done: number } {
-    return { queue: [...this.queue], repeats: new Map(this.repeats), done: this.done }
+  snapshot() {
+    return {
+      queue: [...this.queue],
+      repeats: new Map(this.repeats),
+      finished: new Set(this.finished),
+      done: this.done,
+    }
   }
   restore(snap: ReturnType<Session['snapshot']>): void {
     this.queue.splice(0, this.queue.length, ...snap.queue)
     this.repeats = new Map(snap.repeats)
+    this.finished = new Set(snap.finished)
     this.done = snap.done
   }
+  /** Answers still to give, repeats included. */
   get left(): number {
     return this.queue.length
+  }
+  /** Different questions that aren't finished yet: what a learner sees as "left". */
+  get remaining(): number {
+    return this.total - this.finished.size
+  }
+  /**
+   * 0–1, moving on every answer: a finished question counts fully, one that was answered and
+   * comes back counts half.
+   */
+  get progress(): number {
+    if (!this.total) return 1
+    const started = new Set([...this.repeats.keys()].filter((k) => !this.finished.has(k))).size
+    return (this.finished.size + started * 0.5) / this.total
   }
   /** Move on after answering the current item. */
   next(record: ItemRecord | undefined, now: number): void {
     const item = this.queue.shift()
     if (!item) return
     this.done++
-    const key = `${item.deck.id}/${item.card.id}/${item.template.id}`
+    const key = sessionKey(item)
     const count = this.repeats.get(key) ?? 0
     if (record && record.due - now < 20 * MINUTE && count < 3) {
       this.repeats.set(key, count + 1)
       const gap = record.due - now < 2 * MINUTE ? 3 : 6
       this.queue.splice(Math.min(gap, this.queue.length), 0, { ...item, intro: false })
+    } else if (!this.queue.some((q) => sessionKey(q) === key)) {
+      this.finished.add(key)
     }
   }
 }

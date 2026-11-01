@@ -59,25 +59,29 @@
     display: block;
     object-fit: contain;
     margin: 0 auto;
-    border-radius: 12px;
+    border-radius: 16px;
+    background: #fff;
+    padding: 6px;
+    box-sizing: content-box;
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
   }
   .picture.big {
+    padding: 16px;
     width: auto;
     height: auto;
-    max-width: min(100%, 440px);
+    max-width: min(calc(100% - 32px), 440px);
     max-height: min(34vh, 300px);
     min-height: min(22vh, 160px);
   }
   .picture.medium {
     max-height: 160px;
-    max-width: 100%;
+    max-width: calc(100% - 12px);
   }
   .picture.small {
     max-height: 100px;
-    max-width: 100%;
+    max-width: calc(100% - 12px);
   }
   .text {
     display: flex;
