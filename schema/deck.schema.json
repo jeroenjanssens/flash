@@ -16,9 +16,15 @@
     "cards"
   ],
   "properties": {
-    "$schema": { "type": "string" },
-    "format": { "const": "flash-deck" },
-    "formatVersion": { "const": 1 },
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "flash-deck"
+    },
+    "formatVersion": {
+      "const": 1
+    },
     "id": {
       "description": "Stable, globally unique id (a UUID). Never changes, so a re-imported deck updates the existing one.",
       "type": "string",
@@ -29,18 +35,48 @@
       "type": "integer",
       "minimum": 1
     },
-    "createdAt": { "type": "string", "format": "date-time" },
-    "updatedAt": { "type": "string", "format": "date-time" },
-    "title": { "$ref": "#/$defs/localized" },
-    "description": { "$ref": "#/$defs/localized" },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "title": {
+      "$ref": "#/$defs/localized"
+    },
+    "description": {
+      "$ref": "#/$defs/localized"
+    },
+    "cover": {
+      "description": "Picture for the start screen (a path inside media/).",
+      "$ref": "#/$defs/mediaPath"
+    },
+    "color": {
+      "description": "Accent colour for the deck, e.g. on the start screen.",
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
     "collection": {
       "description": "Groups decks that belong together, like the themes of one school book.",
       "type": "object",
-      "required": ["id", "title"],
+      "required": [
+        "id",
+        "title"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
-        "title": { "$ref": "#/$defs/localized" },
-        "position": { "type": "integer", "minimum": 1 }
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "title": {
+          "$ref": "#/$defs/localized"
+        },
+        "position": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "additionalProperties": false
     },
@@ -48,36 +84,66 @@
       "description": "The language that is being learned (BCP 47), e.g. for text-to-speech.",
       "$ref": "#/$defs/lang"
     },
-    "tags": { "$ref": "#/$defs/tags" },
+    "tags": {
+      "$ref": "#/$defs/tags"
+    },
     "source": {
       "description": "Where the content comes from.",
       "type": "object",
       "properties": {
-        "title": { "type": "string" },
-        "publisher": { "type": "string" },
-        "author": { "type": "string" },
-        "url": { "type": "string", "format": "uri" },
-        "copyright": { "type": "string" },
-        "license": { "type": "string" },
-        "notes": { "type": "string" }
+        "title": {
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "copyright": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
+    },
+    "voices": {
+      "description": "The voices used for pronunciation. Text values refer to them by id in their `audio`.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/voice"
+      }
     },
     "fields": {
       "description": "What every card in this deck contains (like an Anki note type).",
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/field" }
+      "items": {
+        "$ref": "#/$defs/field"
+      }
     },
     "templates": {
       "description": "Ways to study a card. Every card is studied once per enabled template, each with its own schedule.",
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/template" }
+      "items": {
+        "$ref": "#/$defs/template"
+      }
     },
     "cards": {
       "type": "array",
-      "items": { "$ref": "#/$defs/card" }
+      "items": {
+        "$ref": "#/$defs/card"
+      }
     }
   },
   "additionalProperties": false,
@@ -90,50 +156,137 @@
       "description": "Text for the interface, in one or more languages, keyed by BCP 47 tag.",
       "type": "object",
       "minProperties": 1,
-      "propertyNames": { "$ref": "#/$defs/lang" },
-      "additionalProperties": { "type": "string", "minLength": 1 }
+      "propertyNames": {
+        "$ref": "#/$defs/lang"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "tags": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      }
     },
     "field": {
       "type": "object",
-      "required": ["id", "type"],
+      "required": [
+        "id",
+        "type"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
-        "type": { "enum": ["text", "image", "audio"] },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "type": {
+          "enum": [
+            "text",
+            "image",
+            "audio",
+            "video"
+          ],
+          "description": "video is reserved: valid, but not shown by the app yet."
+        },
         "lang": {
           "description": "Language of a text field (required for text). A value can override it.",
           "$ref": "#/$defs/lang"
         },
-        "name": { "$ref": "#/$defs/localized" },
-        "optional": { "type": "boolean", "default": false }
+        "name": {
+          "$ref": "#/$defs/localized"
+        },
+        "optional": {
+          "type": "boolean",
+          "default": false
+        },
+        "speak": {
+          "description": "Text that should have pronunciation audio.",
+          "type": "boolean",
+          "default": false
+        }
       },
-      "if": { "properties": { "type": { "const": "text" } } },
-      "then": { "required": ["lang"] },
+      "if": {
+        "properties": {
+          "type": {
+            "const": "text"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "lang"
+        ]
+      },
       "additionalProperties": false
     },
     "template": {
       "type": "object",
-      "required": ["id", "front", "back"],
+      "required": [
+        "id",
+        "prompt",
+        "answer"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
-        "name": { "$ref": "#/$defs/localized" },
-        "front": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "back": { "type": "array", "items": { "type": "string" } },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "name": {
+          "$ref": "#/$defs/localized"
+        },
+        "description": {
+          "$ref": "#/$defs/localized"
+        },
+        "prompt": {
+          "description": "What is shown (or played) as the question.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/promptItem"
+          }
+        },
         "answer": {
-          "description": "The text field to type when answering by typing.",
+          "description": "The field that has to be given: typed or chosen (text), or chosen (image).",
           "type": "string"
         },
-        "enabled": { "type": "boolean", "default": true }
+        "reveal": {
+          "description": "What is shown after answering, next to the answer.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/promptItem"
+          }
+        },
+        "methods": {
+          "description": "How the answer can be given.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "type",
+              "choose",
+              "flip"
+            ]
+          }
+        },
+        "enabled": {
+          "description": "Studied with spaced repetition by default. Learners can change this.",
+          "type": "boolean",
+          "default": true
+        }
       },
       "additionalProperties": false
     },
     "card": {
       "type": "object",
-      "required": ["id", "fields"],
+      "required": [
+        "id",
+        "fields"
+      ],
       "properties": {
         "id": {
           "description": "Unique within the deck and never changes: progress is stored per card id.",
@@ -147,43 +300,185 @@
         "fields": {
           "type": "object",
           "additionalProperties": {
-            "oneOf": [{ "$ref": "#/$defs/textValue" }, { "$ref": "#/$defs/mediaValue" }]
+            "oneOf": [
+              {
+                "$ref": "#/$defs/textValue"
+              },
+              {
+                "$ref": "#/$defs/mediaValue"
+              }
+            ]
           }
         },
-        "tags": { "$ref": "#/$defs/tags" },
-        "suspended": { "type": "boolean", "default": false }
+        "tags": {
+          "$ref": "#/$defs/tags"
+        },
+        "suspended": {
+          "type": "boolean",
+          "default": false
+        },
+        "confusable": {
+          "description": "Cards that are easily confused with this one; preferred as wrong options in multiple choice.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {}
+      }
     },
     "textValue": {
       "type": "object",
-      "required": ["text"],
+      "required": [
+        "text"
+      ],
       "properties": {
-        "text": { "type": "string", "minLength": 1 },
-        "lang": { "$ref": "#/$defs/lang" },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lang": {
+          "$ref": "#/$defs/lang"
+        },
         "accept": {
           "description": "Other answers that count as correct when typing.",
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "hint": { "type": "string" }
+        "hint": {
+          "type": "string"
+        },
+        "audio": {
+          "description": "Pronunciation per voice id (see `voices`).",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/mediaPath"
+          }
+        }
       },
       "additionalProperties": false
     },
     "mediaValue": {
       "type": "object",
-      "required": ["src"],
+      "required": [
+        "src"
+      ],
       "properties": {
         "src": {
           "description": "Path relative to deck.json, inside media/.",
-          "type": "string",
-          "pattern": "^media/[^/]+$"
+          "$ref": "#/$defs/mediaPath"
         },
-        "width": { "type": "integer", "minimum": 1 },
-        "height": { "type": "integer", "minimum": 1 },
-        "alt": { "$ref": "#/$defs/localized" }
+        "type": {
+          "description": "MIME type, e.g. image/webp.",
+          "type": "string",
+          "pattern": "^(image|audio|video)/[a-z0-9.+-]+$"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "alt": {
+          "$ref": "#/$defs/localized"
+        },
+        "credit": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
+    },
+    "mediaPath": {
+      "type": "string",
+      "pattern": "^media/([A-Za-z0-9_-][A-Za-z0-9._-]*/)*[A-Za-z0-9_-][A-Za-z0-9._-]*$"
+    },
+    "voice": {
+      "type": "object",
+      "required": [
+        "id",
+        "lang"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "name": {
+          "$ref": "#/$defs/localized"
+        },
+        "gender": {
+          "enum": [
+            "female",
+            "male",
+            "other"
+          ]
+        },
+        "lang": {
+          "$ref": "#/$defs/lang"
+        },
+        "engine": {
+          "description": "How the audio was made, e.g. kokoro, recording.",
+          "type": "string"
+        },
+        "voice": {
+          "description": "The engine's name for the voice, e.g. bf_emma.",
+          "type": "string"
+        },
+        "credit": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "promptItem": {
+      "description": "A field id, or a field shown in another way: a text field `as: audio` is spoken instead of shown.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": [
+            "field"
+          ],
+          "properties": {
+            "field": {
+              "type": "string"
+            },
+            "as": {
+              "enum": [
+                "text",
+                "audio"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
+  },
+  "patternProperties": {
+    "^x-": {}
   }
 }

@@ -40,6 +40,9 @@
       .chip { background: #f1ede5; border-radius: 6px; padding: 0.05rem 0.4rem; }
       .chip.lang { background: #fff0e6; color: var(--accent); font-weight: 600; }
       .ref { font-weight: 700; color: var(--ink); }
+      .chip.voice { font-size: 0.78rem; padding: 0.05rem 0.5rem; cursor: pointer; }
+      .speak { font-size: 3rem; background: none; }
+      select { font: inherit; border-radius: 999px; padding: 0.35rem 0.8rem; border: 1px solid #ddd; }
       .face.back { height: 110px; }
       .back { display: none; }
       .both .back { display: grid; }
@@ -64,7 +67,7 @@
 
     <script type="module">
       const params = new URLSearchParams(location.search);
-      const deckUrl = new URL(params.get("deck") ?? "../decks/stepping-stones-3b-theme-1/deck.json", location.href);
+      const deckUrl = new URL(params.get("deck") ?? "/deck/deck.json", location.href);
       const deck = await (await fetch(deckUrl)).json();
       const $ = (id) => document.getElementById(id);
       const loc = (o) => (o ? Object.entries(o).map(([l, t]) => `${t} (${l})`).join(" · ") : "—");
@@ -103,20 +106,34 @@
         $("problems").classList.toggle("bad", problems.length > 0);
       };
 
-      const tpl = deck.templates.find((t) => t.enabled !== false) ?? deck.templates[0];
-      const renderFace = (card, ids, cls) => {
+      const fieldOf = (item) => (typeof item === "string" ? item : item.field);
+      let tpl = deck.templates.find((t) => t.id === params.get("template")) ?? deck.templates[0];
+      const sel = el("select");
+      for (const t of deck.templates) sel.append(Object.assign(el("option", "", `${t.id}${t.enabled === false ? " (off)" : ""}`), { value: t.id, selected: t === tpl }));
+      sel.onchange = () => { params.set("template", sel.value); location.search = params; };
+      document.querySelector(".bar").prepend(sel);
+      const voices = deck.voices ?? [];
+      const play = (src) => new Audio(new URL(src, deckUrl)).play();
+      const renderFace = (card, items, cls) => {
         const face = el("div", `face ${cls}`);
         const box = el("div");
-        for (const id of ids) {
+        for (const item of items) {
+          const id = fieldOf(item);
           const v = card.fields[id];
           if (!v) continue;
+          if (typeof item !== "string" && item.as === "audio") {
+            const b = el("button", "speak", "🔊");
+            b.onclick = (e) => { e.stopPropagation(); v.audio && play(Object.values(v.audio)[0]); };
+            box.append(b);
+            continue;
+          }
           if (fieldDef[id].type === "image") {
             const img = Object.assign(document.createElement("img"), { src: new URL(v.src, deckUrl), alt: "" });
             img.onerror = () => { problems.push(`${card.ref}: image ${v.src} missing`); showProblems(); };
             face.append(img);
             return face;
           }
-          const t = el("div", id === tpl.answer ? "word" : "translation", v.text);
+          const t = el("div", id === tpl.answer || items.length === 1 ? "word" : "translation", v.text);
           t.lang = v.lang ?? fieldDef[id].lang;
           box.append(t);
         }
@@ -126,12 +143,19 @@
 
       for (const c of deck.cards) {
         const card = el("article", "card");
-        card.append(renderFace(c, tpl.front, "front"), renderFace(c, tpl.back, "back"));
+        card.append(renderFace(c, tpl.prompt, "front"), renderFace(c, [tpl.answer, ...(tpl.reveal ?? [])], "back"));
         const info = el("div", "info");
         info.append(el("span", "ref", c.ref ?? ""));
         for (const [id, v] of Object.entries(c.fields))
           if (v.text) info.append(el("span", "chip lang", `${id}: ${v.lang ?? fieldDef[id].lang}`));
         if (c.fields.word?.accept) info.append(el("span", "chip", `also: ${c.fields.word.accept.join(", ")}`));
+        for (const v of voices) {
+          const src = c.fields.word?.audio?.[v.id];
+          if (!src) continue;
+          const b = el("button", "chip voice", `▶ ${v.id}`);
+          b.onclick = (e) => { e.stopPropagation(); play(src); };
+          info.append(b);
+        }
         for (const t of c.tags ?? []) info.append(el("span", "chip", `#${t}`));
         const img = Object.values(c.fields).find((v) => v.src);
         if (img) info.append(el("span", "chip", `${img.width}×${img.height}`));
