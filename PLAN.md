@@ -9,6 +9,19 @@ It's built like [kana](../kana): Svelte 5, TypeScript and Vite, deployed to GitH
 installable PWA that works offline. Code is copied from kana and adapted where it fits (gist
 sync and merge, FSRS scheduler, sprint and race, i18n, audio engine, charts).
 
+> **Status (1 November 2026): M0–M9 are implemented.** Where the build differs from this plan:
+>
+> - **Voices:** the male voice is Kokoro `bm_lewis`, not `bm_george`: speech recognition over the
+>   whole deck understood Lewis far better (24 vs 14 of 30 words). Words end with a full stop
+>   before synthesis, which makes single words clearer.
+> - **Built-in deck:** a free *Colours* deck (11 cards, pictures drawn as SVG) comes with the
+>   app, for trying Flash and for the tests. *My home* lives in the private deck library
+>   `jeroenjanssens/flash-decks`.
+> - **Sound effects** are synthesised in the browser (no sound files to license).
+> - **Not built (yet):** distractors from other decks of the same collection (decks have enough
+>   cards), letter tiles (for Olivier, later), and example sentences.
+> - **Tests:** 39 unit tests and 13 end-to-end tests, each on laptop, iPhone and iPad sizes.
+
 Each decision lists a **default** (what I'll build unless you say otherwise) and the
 **alternatives**, with pros and cons. Open questions are numbered **Q1…** and collected at the end.
 
