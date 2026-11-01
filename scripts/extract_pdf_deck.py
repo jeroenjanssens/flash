@@ -4,9 +4,8 @@
 # ///
 """Extract flashcards from a scanned PDF of cut-out cards.
 
-The PDF alternates between a page of pictures (in a 2x5 grid with green lines) and a page
-with the corresponding words (in a 2x5 grid with black lines). For every pair of pages this
-script:
+The PDF alternates between a page of pictures (in a grid, 2 columns × 5 rows by default) and a
+page with the corresponding words (in the same grid). For every pair of pages this script:
 
 1. extracts the scans (needs poppler's `pdfimages`),
 2. straightens them (the scans are slightly rotated),
@@ -14,12 +13,19 @@ script:
 4. trims each picture and saves it as WebP,
 5. OCRs each word (needs `tesseract`).
 
-It writes the pictures to `<out>/media/` and the raw results to `<out>/extracted.json`, which
-is then curated by hand into `deck.json` (lowercasing, alternatives, metadata).
+It writes the pictures to `<out>/media/`, the raw results to `<out>/extracted.json` and a
+contact sheet to `<out>/contact.png` (every picture with its number and word: check it!).
+`new_deck.py` then turns extracted.json into a deck.json to curate. See docs/making-decks.md.
 
-Usage: uv run scripts/extract_pdf_deck.py <pdf> <out-dir>
+Grid lines: picture pages have coloured lines (`--line-color green`, or `dark`), word pages dark
+lines. Back pages printed double-sided are often mirrored (the left column on the front is the
+right column on the back): use `--mirrored`. If the words come first, use `--words-first`.
+
+Usage: uv run scripts/extract_pdf_deck.py <pdf> <out-dir> [--rows 5] [--cols 2] [--mirrored]
+       [--words-first] [--line-color green|dark] [--lang eng]
 """
 
+import argparse
 import json
 import subprocess
 import sys
@@ -30,7 +36,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-ROWS, COLS = 5, 2
+ROWS, COLS = 5, 2  # changed by the command-line options
 
 
 def line_mask(img: np.ndarray, kind: str) -> np.ndarray:
@@ -108,8 +114,8 @@ def grid(img: np.ndarray, kind: str) -> tuple[np.ndarray, list[int], list[int]]:
     img = rotate(img, angle)
     horizontal, vertical = long_lines(line_mask(img, kind))
     h, w = horizontal.shape
-    ys = line_positions(horizontal.astype(np.float64).sum(1), ROWS + 1, h // 9, h // 5)
-    xs = line_positions(vertical.astype(np.float64).sum(0), COLS + 1, w // 3, w // 2)
+    ys = line_positions(horizontal.astype(np.float64).sum(1), ROWS + 1, h // (2 * ROWS), h // ROWS)
+    xs = line_positions(vertical.astype(np.float64).sum(0), COLS + 1, w // (COLS + 1), w // COLS)
     print(f"  {kind:5} page: rotated {angle:+.2f}°, rows at {ys}, cols at {xs}")
     return img, ys, xs
 
@@ -144,11 +150,14 @@ def trim_picture(cell: np.ndarray) -> np.ndarray:
     return pic
 
 
+OCR_LANG = "eng"
+
+
 def ocr(cell: np.ndarray) -> str:
     with tempfile.NamedTemporaryFile(suffix=".png") as f:
         cv2.imwrite(f.name, cell)
         out = subprocess.run(
-            ["tesseract", f.name, "-", "--psm", "7", "-l", "eng"],
+            ["tesseract", f.name, "-", "--psm", "7", "-l", OCR_LANG],
             capture_output=True,
             text=True,
             check=True,
@@ -156,20 +165,39 @@ def ocr(cell: np.ndarray) -> str:
     return out.stdout.strip()
 
 
-def main(pdf: Path, out: Path) -> None:
+def contact_sheet(out: Path, results: list[dict]) -> None:
+    """All pictures in a grid with their number and word, to check the extraction at a glance."""
+    from PIL import ImageDraw
+
+    tile_w, tile_h, cols = 240, 220, 6
+    rows = (len(results) + cols - 1) // cols
+    sheet = Image.new("RGB", (cols * tile_w, rows * tile_h), "white")
+    draw = ImageDraw.Draw(sheet)
+    for i, r in enumerate(results):
+        x, y = (i % cols) * tile_w, (i // cols) * tile_h
+        pic = Image.open(out / r["image"]).convert("RGB")
+        pic.thumbnail((tile_w - 20, tile_h - 60))
+        sheet.paste(pic, (x + (tile_w - pic.width) // 2, y + 10))
+        draw.text((x + 10, y + tile_h - 44), f"{r['ref']}  {r['ocr']}", fill="black", font_size=20)
+        draw.rectangle([x, y, x + tile_w - 1, y + tile_h - 1], outline="#ccc")
+    sheet.save(out / "contact.png")
+
+
+def main(pdf: Path, out: Path, mirrored: bool, words_first: bool, line_color: str) -> None:
     media = out / "media"
     media.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run(["pdfimages", "-j", str(pdf), f"{tmp}/page"], check=True)
-        pages = sorted(Path(tmp).glob("page-*.jpg"))
+        pages = sorted(Path(tmp).glob("page-*.[jp][pnb]*"))
         if len(pages) % 2:
             raise RuntimeError("expected an even number of pages (pictures, words, ...)")
         results = []
         for p in range(0, len(pages), 2):
             sheet = p // 2 + 1
             print(f"sheet {sheet}")
-            pic_img, pys, pxs = grid(cv2.imread(str(pages[p])), "green")
-            word_img, wys, wxs = grid(cv2.imread(str(pages[p + 1])), "dark")
+            pic_page, word_page = (pages[p + 1], pages[p]) if words_first else (pages[p], pages[p + 1])
+            pic_img, pys, pxs = grid(cv2.imread(str(pic_page)), line_color)
+            word_img, wys, wxs = grid(cv2.imread(str(word_page)), "dark")
             words = {(r, c): ocr(cell) for r, c, cell in cells(word_img, wys, wxs, inset=12)}
             for r, c, cell in cells(pic_img, pys, pxs, inset=8):
                 number = r * COLS + c + 1
@@ -177,13 +205,27 @@ def main(pdf: Path, out: Path) -> None:
                 name = f"{sheet}-{number:02d}.webp"
                 pic = cv2.cvtColor(trim_picture(cell), cv2.COLOR_BGR2RGB)
                 Image.fromarray(pic).save(media / name, "WEBP", quality=88, method=6)
+                word = words[(r, COLS - 1 - c) if mirrored else (r, c)]
                 results.append(
-                    {"ref": ref, "image": f"media/{name}", "ocr": words[(r, c)],
+                    {"ref": ref, "image": f"media/{name}", "ocr": word,
                      "size": [pic.shape[1], pic.shape[0]]}
                 )
-                print(f"  {ref:5} {words[(r, c)]!r}")
-    (out / "extracted.json").write_text(json.dumps(results, indent=2) + "\n")
+                print(f"  {ref:5} {word!r}")
+    (out / "extracted.json").write_text(json.dumps(results, indent=2, ensure_ascii=False) + "\n")
+    contact_sheet(out, results)
+    print(f"check {out / 'contact.png'}")
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]), Path(sys.argv[2]))
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("pdf", type=Path)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--rows", type=int, default=5)
+    parser.add_argument("--cols", type=int, default=2)
+    parser.add_argument("--mirrored", action="store_true", help="word pages are mirrored left-right")
+    parser.add_argument("--words-first", action="store_true", help="word pages come before picture pages")
+    parser.add_argument("--line-color", choices=["green", "dark"], default="green")
+    parser.add_argument("--lang", default="eng", help="tesseract language, e.g. eng, nld, deu, fra")
+    args = parser.parse_args()
+    ROWS, COLS, OCR_LANG = args.rows, args.cols, args.lang
+    main(args.pdf, args.out, args.mirrored, args.words_first, args.line_color)
