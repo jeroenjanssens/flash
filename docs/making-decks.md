@@ -80,7 +80,7 @@ Go through every card:
 just audio ../flash-decks/<folder>
 ```
 
-Makes an MP3 per word in each voice (`female`: Kokoro `bf_emma`, `male`: `bm_lewis`, British
+Makes an MP3 per word in each voice (`female`: Kokoro `bf_lily`, `male`: `bm_lewis`, British
 English) and adds the paths to `deck.json`. It only makes clips whose word changed, so it's fast
 to run again. To compare other voices: `just voices ../flash-decks/<folder>` and open
 `voice-preview/index.html`.

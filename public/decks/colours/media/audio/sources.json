@@ -1,112 +1,134 @@
 {
   "media/audio/female/colour-black-word.mp3": {
     "text": "black",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-blue-word.mp3": {
     "text": "blue",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-brown-word.mp3": {
     "text": "brown",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-green-word.mp3": {
     "text": "green",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-grey-word.mp3": {
     "text": "grey",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-orange-word.mp3": {
     "text": "orange",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-pink-word.mp3": {
     "text": "pink",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-purple-word.mp3": {
     "text": "purple",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-red-word.mp3": {
     "text": "red",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-white-word.mp3": {
     "text": "white",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/female/colour-yellow-word.mp3": {
     "text": "yellow",
-    "voice": "bf_emma",
-    "lang": "en-GB"
+    "voice": "bf_lily",
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-black-word.mp3": {
     "text": "black",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-blue-word.mp3": {
     "text": "blue",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-brown-word.mp3": {
     "text": "brown",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-green-word.mp3": {
     "text": "green",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-grey-word.mp3": {
     "text": "grey",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-orange-word.mp3": {
     "text": "orange",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-pink-word.mp3": {
     "text": "pink",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-purple-word.mp3": {
     "text": "purple",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-red-word.mp3": {
     "text": "red",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-white-word.mp3": {
     "text": "white",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   },
   "media/audio/male/colour-yellow-word.mp3": {
     "text": "yellow",
     "voice": "bm_lewis",
-    "lang": "en-GB"
+    "lang": "en-GB",
+    "method": "carrier-1"
   }
 }

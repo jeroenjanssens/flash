@@ -11,9 +11,9 @@ sync and merge, FSRS scheduler, sprint and race, i18n, audio engine, charts).
 
 > **Status (1 November 2026): M0–M9 are implemented.** Where the build differs from this plan:
 >
-> - **Voices:** the male voice is Kokoro `bm_lewis`, not `bm_george`: speech recognition over the
->   whole deck understood Lewis far better (24 vs 14 of 30 words). Words end with a full stop
->   before synthesis, which makes single words clearer.
+> - **Voices:** Kokoro `bf_lily` (female, chosen by ear) and `bm_lewis` (male; speech recognition
+>   understood him far better than `bm_george`). Said on its own, Kokoro adds an "-eh" after a final
+>   consonant ("fridge-eh"), so every word is said inside "I said … twice" and cut out of it.
 > - **Built-in deck:** a free *Colours* deck (11 cards, pictures drawn as SVG) comes with the
 >   app, for trying Flash and for the tests. *My home* lives in the private deck library
 >   `jeroenjanssens/flash-decks`.
@@ -96,7 +96,7 @@ them is breaking in practice, because no deck has been shipped yet, so it stays 
   "collection": { "id": "stepping-stones-junior-3b", "title": { "en": "Stepping Stones Junior 3B" }, "position": 1 },
   "language": "en-GB",
   "voices": [
-    { "id": "female", "gender": "female", "lang": "en-GB", "engine": "kokoro", "voice": "bf_emma", "credit": "Kokoro-82M (Apache-2.0)" },
+    { "id": "female", "gender": "female", "lang": "en-GB", "engine": "kokoro", "voice": "bf_lily", "credit": "Kokoro-82M (Apache-2.0)" },
     { "id": "male", "gender": "male", "lang": "en-GB", "engine": "kokoro", "voice": "bm_lewis", "credit": "Kokoro-82M (Apache-2.0)" }
   ],
   "fields": [
@@ -327,7 +327,7 @@ The deck's pictures are © Noordhoff, so they shouldn't go in a public repo or a
 **D5. Pronunciation engine** (Q4)
 - *Default:* **Kokoro-82M**, run locally with uv. Apache-2.0 model and code, so the audio can be
   redistributed with no credit required (I'll credit it anyway); very natural; has British *and*
-  American female and male voices (`bf_emma`, `bf_isabella`, `bm_lewis`, `bm_lewis`, `af_heart`,
+  American female and male voices (`bf_lily`, `bf_isabella`, `bm_lewis`, `bm_lewis`, `af_heart`,
   `am_michael`, …). *Cons:* needs `espeak-ng` (Homebrew) for the pronunciation of unknown words;
   English only (not a problem: only the English words need audio).
 - *Alternative:* **Piper**. *Pros:* small and fast; has Dutch voices too. *Cons:* clearly more
@@ -499,7 +499,7 @@ because it's imported on the device.
 | Q1 | Name | ✅ **Florien** |
 | Q2 | MVP before the test | ✅ Build it all, in the milestone order above |
 | Q3 | Copyrighted decks | ✅ **Private deck repo** (`jeroenjanssens/flash-decks`), plus zip import and export |
-| Q4 | English variant and engine | ✅ **British English, Kokoro**; voices picked on a preview page (defaults `bf_emma` and `bm_lewis`) |
+| Q4 | English variant and engine | ✅ **British English, Kokoro**; voices picked on a preview page (defaults `bf_lily` and `bm_lewis`) |
 | Q5 | Practice modes and the schedule | ✅ **No effect** on the schedule; logged for stats and the daily goal |
 | Q6 | Grading in Learn | ✅ **Automatic**, graduated choose → type; self-grading available as a setting |
 | Q7 | Templates | ✅ **All six templates** (including `english-to-dutch`), **selectable per profile and deck**. On by default: `picture-to-word` and `dutch-to-english` |

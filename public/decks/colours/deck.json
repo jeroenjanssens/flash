@@ -3,9 +3,9 @@
   "format": "flash-deck",
   "formatVersion": 1,
   "id": "5f0c8a1e-6f0b-4d55-9a57-2f6d3c0b9e11",
-  "revision": 1,
+  "revision": 2,
   "createdAt": "2026-11-02T12:00:00+01:00",
-  "updatedAt": "2026-11-02T12:00:00+01:00",
+  "updatedAt": "2026-11-01T22:30:00+01:00",
   "title": {
     "en": "Colours",
     "nl": "Kleuren"
@@ -30,13 +30,13 @@
     {
       "id": "female",
       "name": {
-        "en": "Emma",
-        "nl": "Emma"
+        "en": "Lily",
+        "nl": "Lily"
       },
       "gender": "female",
       "lang": "en-GB",
       "engine": "kokoro",
-      "voice": "bf_emma",
+      "voice": "bf_lily",
       "credit": "Kokoro-82M by hexgrad",
       "license": "Apache-2.0"
     },

@@ -135,8 +135,8 @@ def main() -> None:
         "language": args.language,
         "tags": [learn_name["en"].lower(), "vocabulary"],
         "voices": (old or {}).get("voices") or [
-            {"id": "female", "name": {"en": "Emma", "nl": "Emma"}, "gender": "female", "lang": args.language,
-             "engine": "kokoro", "voice": "bf_emma" if args.language == "en-GB" else "af_heart",
+            {"id": "female", "name": {"en": "Lily", "nl": "Lily"}, "gender": "female", "lang": args.language,
+             "engine": "kokoro", "voice": "bf_lily" if args.language == "en-GB" else "af_heart",
              "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
             {"id": "male", "name": {"en": "Lewis", "nl": "Lewis"}, "gender": "male", "lang": args.language,
              "engine": "kokoro", "voice": "bm_lewis" if args.language == "en-GB" else "am_michael",

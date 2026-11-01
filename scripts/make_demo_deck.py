@@ -71,7 +71,7 @@ def main() -> None:
     deck = {
         "$schema": "https://raw.githubusercontent.com/jeroenjanssens/flash/main/schema/deck.schema.json",
         "format": "flash-deck", "formatVersion": 1,
-        "id": "5f0c8a1e-6f0b-4d55-9a57-2f6d3c0b9e11", "revision": 1,
+        "id": "5f0c8a1e-6f0b-4d55-9a57-2f6d3c0b9e11", "revision": 2,
         "createdAt": "2026-11-02T12:00:00+01:00", "updatedAt": "2026-11-02T12:00:00+01:00",
         "title": L("Colours", "Kleuren"),
         "description": L("Eleven colours in English. A deck to try Flash with.", "Elf kleuren in het Engels. Een stapel om Flash mee uit te proberen."),
@@ -79,7 +79,7 @@ def main() -> None:
         "language": "en-GB", "tags": ["english", "vocabulary", "demo"],
         "source": {"author": "Jeroen Janssens", "license": "CC0-1.0"},
         "voices": [
-            {"id": "female", "name": L("Emma", "Emma"), "gender": "female", "lang": "en-GB", "engine": "kokoro", "voice": "bf_emma", "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
+            {"id": "female", "name": L("Lily", "Lily"), "gender": "female", "lang": "en-GB", "engine": "kokoro", "voice": "bf_lily", "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
             {"id": "male", "name": L("Lewis", "Lewis"), "gender": "male", "lang": "en-GB", "engine": "kokoro", "voice": "bm_lewis", "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
         ],
         "fields": [

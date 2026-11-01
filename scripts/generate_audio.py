@@ -52,13 +52,44 @@ def pipeline(lang: str):
     return _pipelines[code]
 
 
+# How clips are made; part of sources.json, so changing it makes every clip again.
+METHOD = "carrier-1"
+CARRIER = ("I said", "twice.")
+
+
+def say(text: str, voice: str, lang: str):
+    results = list(pipeline(lang)(text, voice=voice))
+    audio = np.concatenate([np.asarray(r.audio) for r in results])
+    tokens = [t for r in results for t in (r.tokens or [])]
+    return audio, tokens
+
+
+def fade(x: np.ndarray, ms_in: float = 2, ms_out: float = 20) -> np.ndarray:
+    x = x.copy()
+    n_in, n_out = int(SAMPLE_RATE * ms_in / 1000), int(SAMPLE_RATE * ms_out / 1000)
+    x[:n_in] *= np.linspace(0, 1, n_in)
+    x[-n_out:] *= np.linspace(1, 0, n_out)
+    return x
+
+
 def synthesize(text: str, voice: str, lang: str) -> np.ndarray:
-    # A full stop makes Kokoro say a single word as a finished sentence, which is clearer
-    # (checked with speech recognition over a whole deck).
-    if text[-1:].isalnum():
-        text += "."
-    chunks = [audio for _, _, audio in pipeline(lang)(text, voice=voice)]
-    return np.concatenate([np.asarray(c) for c in chunks])
+    """The text, said inside a short sentence and cut out of it.
+
+    Said on its own, Kokoro adds a short "-eh" after a final consonant ("fridge-eh"). Inside
+    "I said fridge twice" the word runs straight into the next one, so cutting it out (by the
+    word timestamps Kokoro gives) leaves a clean word. This sounded best of four ways tried.
+    Falls back to the word on its own (with a full stop, which is clearer) if the timestamps
+    are missing.
+    """
+    audio, tokens = say(f"{CARRIER[0]} {text} {CARRIER[1]}", voice, lang)
+    lead = len(CARRIER[0].split())
+    inner = tokens[lead:-2] if len(tokens) > lead + 2 else []
+    if inner and inner[0].start_ts is not None and inner[-1].end_ts is not None:
+        start, end = int(inner[0].start_ts * SAMPLE_RATE), int(inner[-1].end_ts * SAMPLE_RATE)
+        if end - start > SAMPLE_RATE // 10:
+            return fade(audio[start:end])
+    plain, _ = say(text + "." if text[-1:].isalnum() else text, voice, lang)
+    return plain
 
 
 def encode(samples: np.ndarray, out: Path) -> None:
@@ -96,7 +127,7 @@ def generate(deck_dir: Path, only_voice: str | None, force: bool) -> None:
             audio = value.setdefault("audio", {})
             for voice in voices:
                 src = f"media/audio/{voice['id']}/{card['id']}-{field_id}.mp3"
-                wanted = {"text": value["text"], "voice": voice["voice"], "lang": lang}
+                wanted = {"text": value["text"], "voice": voice["voice"], "lang": lang, "method": METHOD}
                 if force or sources.get(src) != wanted or not (deck_dir / src).exists():
                     encode(synthesize(value["text"], voice["voice"], lang), deck_dir / src)
                     sources[src] = wanted
@@ -111,13 +142,16 @@ def generate(deck_dir: Path, only_voice: str | None, force: bool) -> None:
     print(f"{made} clips made")
 
 
-def preview(deck_dir: Path, out: Path) -> None:
+def preview(deck_dir: Path, out: Path, voices: list[str] | None = None, count: int = 8) -> None:
     """A page that plays a few of the deck's words in every candidate voice."""
     deck = json.loads((deck_dir / "deck.json").read_text())
     word_field = next(f for f in deck["fields"] if f["type"] == "text" and f.get("speak"))
-    words = [c["fields"][word_field["id"]]["text"] for c in deck["cards"][:8]]
+    cards = deck["cards"]
+    step = max(1, len(cards) // count)
+    words = [c["fields"][word_field["id"]]["text"] for c in cards[::step][:count]]
     rows = []
-    for voice in CANDIDATES:
+    out.mkdir(parents=True, exist_ok=True)
+    for voice in voices or CANDIDATES:
         lang = "en-GB" if voice[0] == "b" else "en-US"
         cells = []
         for i, word in enumerate(words):
@@ -143,9 +177,10 @@ def main() -> None:
     parser.add_argument("--voice")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--preview", type=Path, metavar="DIR")
+    parser.add_argument("--voices", help="comma-separated Kokoro voices for --preview, e.g. bf_lily,af_heart")
     args = parser.parse_args()
     if args.preview:
-        preview(args.deck, args.preview)
+        preview(args.deck, args.preview, args.voices.split(",") if args.voices else None)
     else:
         generate(args.deck, args.voice, args.force)
 
