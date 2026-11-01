@@ -1,0 +1,10 @@
+dist
+dev-dist
+node_modules
+package-lock.json
+public
+playwright-report
+test-results
+PLAN.md
+docs/*.md
+preview

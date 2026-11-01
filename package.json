@@ -1,0 +1,49 @@
+{
+  "name": "flash",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Flashcards with spaced repetition, made for kids",
+  "type": "module",
+  "license": "MIT",
+  "author": "Jeroen Janssens",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tsconfig/svelte": "^5.0.8",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "eslint-plugin-svelte": "^3.23.1",
+    "fake-indexeddb": "^6.2.7",
+    "globals": "^17.14.0",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-svelte": "^4.1.1",
+    "sharp": "^0.35.5",
+    "svelte": "^5.57.3",
+    "svelte-check": "^4.7.8",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^4.1.12"
+  },
+  "dependencies": {
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource/andika": "^5.3.0",
+    "fflate": "^0.8.3",
+    "ts-fsrs": "^5.4.2",
+    "uqr": "^0.1.3"
+  }
+}

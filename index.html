@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Flashcards with spaced repetition, made for kids." />
+    <meta name="theme-color" content="#fff8ef" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Flash" />
+    <title>Flash</title>
+    <style>
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        background: #fff8ef;
+      }
+      @media (prefers-color-scheme: dark) {
+        #boot {
+          background: #1d1a26;
+        }
+      }
+      #boot img {
+        width: 96px;
+        height: 96px;
+        animation: boot 1.2s ease-in-out infinite alternate;
+      }
+      @keyframes boot {
+        from {
+          transform: rotate(-4deg) scale(0.96);
+        }
+        to {
+          transform: rotate(4deg) scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="boot" aria-hidden="true"><img src="/favicon.svg" alt="" /></div>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
