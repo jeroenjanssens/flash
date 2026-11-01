@@ -1,0 +1,478 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jeroenjanssens/flash/main/schema/deck.schema.json",
+  "format": "flash-deck",
+  "formatVersion": 1,
+  "id": "5f0c8a1e-6f0b-4d55-9a57-2f6d3c0b9e11",
+  "revision": 1,
+  "createdAt": "2026-11-02T12:00:00+01:00",
+  "updatedAt": "2026-11-02T12:00:00+01:00",
+  "title": {
+    "en": "Colours",
+    "nl": "Kleuren"
+  },
+  "description": {
+    "en": "Eleven colours in English. A deck to try Flash with.",
+    "nl": "Elf kleuren in het Engels. Een stapel om Flash mee uit te proberen."
+  },
+  "cover": "media/orange.svg",
+  "color": "#7c5cff",
+  "language": "en-GB",
+  "tags": [
+    "english",
+    "vocabulary",
+    "demo"
+  ],
+  "source": {
+    "author": "Jeroen Janssens",
+    "license": "CC0-1.0"
+  },
+  "voices": [
+    {
+      "id": "female",
+      "name": {
+        "en": "Emma",
+        "nl": "Emma"
+      },
+      "gender": "female",
+      "lang": "en-GB",
+      "engine": "kokoro",
+      "voice": "bf_emma",
+      "credit": "Kokoro-82M by hexgrad",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "male",
+      "name": {
+        "en": "Lewis",
+        "nl": "Lewis"
+      },
+      "gender": "male",
+      "lang": "en-GB",
+      "engine": "kokoro",
+      "voice": "bm_lewis",
+      "credit": "Kokoro-82M by hexgrad",
+      "license": "Apache-2.0"
+    }
+  ],
+  "fields": [
+    {
+      "id": "image",
+      "type": "image",
+      "name": {
+        "en": "Picture",
+        "nl": "Plaatje"
+      }
+    },
+    {
+      "id": "word",
+      "type": "text",
+      "lang": "en-GB",
+      "speak": true,
+      "name": {
+        "en": "Word",
+        "nl": "Woord"
+      }
+    },
+    {
+      "id": "translation",
+      "type": "text",
+      "lang": "nl",
+      "optional": true,
+      "name": {
+        "en": "Dutch",
+        "nl": "Nederlands"
+      }
+    }
+  ],
+  "templates": [
+    {
+      "id": "picture-to-word",
+      "name": {
+        "en": "Picture → English",
+        "nl": "Plaatje → Engels"
+      },
+      "prompt": [
+        "image"
+      ],
+      "answer": "word",
+      "reveal": [
+        "translation"
+      ],
+      "methods": [
+        "type",
+        "choose",
+        "flip"
+      ]
+    },
+    {
+      "id": "dutch-to-english",
+      "name": {
+        "en": "Dutch → English",
+        "nl": "Nederlands → Engels"
+      },
+      "prompt": [
+        "translation"
+      ],
+      "answer": "word",
+      "reveal": [
+        "image"
+      ],
+      "methods": [
+        "type",
+        "choose",
+        "flip"
+      ]
+    },
+    {
+      "id": "word-to-picture",
+      "name": {
+        "en": "English → picture",
+        "nl": "Engels → plaatje"
+      },
+      "prompt": [
+        "word"
+      ],
+      "answer": "image",
+      "reveal": [
+        "translation"
+      ],
+      "methods": [
+        "choose"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "listen-to-picture",
+      "name": {
+        "en": "Listen → picture",
+        "nl": "Luisteren → plaatje"
+      },
+      "prompt": [
+        {
+          "field": "word",
+          "as": "audio"
+        }
+      ],
+      "answer": "image",
+      "reveal": [
+        "word",
+        "translation"
+      ],
+      "methods": [
+        "choose"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "dictation",
+      "name": {
+        "en": "Listen → spell",
+        "nl": "Luisteren → spellen"
+      },
+      "prompt": [
+        {
+          "field": "word",
+          "as": "audio"
+        }
+      ],
+      "answer": "word",
+      "reveal": [
+        "image",
+        "translation"
+      ],
+      "methods": [
+        "type"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "english-to-dutch",
+      "name": {
+        "en": "English → Dutch",
+        "nl": "Engels → Nederlands"
+      },
+      "prompt": [
+        "word"
+      ],
+      "answer": "translation",
+      "reveal": [
+        "image"
+      ],
+      "methods": [
+        "type",
+        "choose",
+        "flip"
+      ],
+      "enabled": false
+    }
+  ],
+  "cards": [
+    {
+      "id": "colour-red",
+      "fields": {
+        "image": {
+          "src": "media/red.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "red",
+          "audio": {
+            "female": "media/audio/female/colour-red-word.mp3",
+            "male": "media/audio/male/colour-red-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "rood"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-blue",
+      "fields": {
+        "image": {
+          "src": "media/blue.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "blue",
+          "audio": {
+            "female": "media/audio/female/colour-blue-word.mp3",
+            "male": "media/audio/male/colour-blue-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "blauw"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-green",
+      "fields": {
+        "image": {
+          "src": "media/green.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "green",
+          "audio": {
+            "female": "media/audio/female/colour-green-word.mp3",
+            "male": "media/audio/male/colour-green-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "groen"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-yellow",
+      "fields": {
+        "image": {
+          "src": "media/yellow.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "yellow",
+          "audio": {
+            "female": "media/audio/female/colour-yellow-word.mp3",
+            "male": "media/audio/male/colour-yellow-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "geel"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-orange",
+      "fields": {
+        "image": {
+          "src": "media/orange.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "orange",
+          "audio": {
+            "female": "media/audio/female/colour-orange-word.mp3",
+            "male": "media/audio/male/colour-orange-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "oranje"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-purple",
+      "fields": {
+        "image": {
+          "src": "media/purple.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "purple",
+          "audio": {
+            "female": "media/audio/female/colour-purple-word.mp3",
+            "male": "media/audio/male/colour-purple-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "paars"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-pink",
+      "fields": {
+        "image": {
+          "src": "media/pink.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "pink",
+          "audio": {
+            "female": "media/audio/female/colour-pink-word.mp3",
+            "male": "media/audio/male/colour-pink-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "roze"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-brown",
+      "fields": {
+        "image": {
+          "src": "media/brown.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "brown",
+          "audio": {
+            "female": "media/audio/female/colour-brown-word.mp3",
+            "male": "media/audio/male/colour-brown-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "bruin"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-black",
+      "fields": {
+        "image": {
+          "src": "media/black.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "black",
+          "audio": {
+            "female": "media/audio/female/colour-black-word.mp3",
+            "male": "media/audio/male/colour-black-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "zwart"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-white",
+      "fields": {
+        "image": {
+          "src": "media/white.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "white",
+          "audio": {
+            "female": "media/audio/female/colour-white-word.mp3",
+            "male": "media/audio/male/colour-white-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "wit"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    },
+    {
+      "id": "colour-grey",
+      "fields": {
+        "image": {
+          "src": "media/grey.svg",
+          "type": "image/svg+xml",
+          "width": 200,
+          "height": 200
+        },
+        "word": {
+          "text": "grey",
+          "accept": [
+            "gray"
+          ],
+          "audio": {
+            "female": "media/audio/female/colour-grey-word.mp3",
+            "male": "media/audio/male/colour-grey-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "grijs"
+        }
+      },
+      "tags": [
+        "colours"
+      ]
+    }
+  ]
+}
