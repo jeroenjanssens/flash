@@ -3,9 +3,9 @@
   "format": "flash-deck",
   "formatVersion": 1,
   "id": "5f0c8a1e-6f0b-4d55-9a57-2f6d3c0b9e11",
-  "revision": 2,
+  "revision": 3,
   "createdAt": "2026-11-02T12:00:00+01:00",
-  "updatedAt": "2026-11-01T22:30:00+01:00",
+  "updatedAt": "2026-11-01T23:30:00+01:00",
   "title": {
     "en": "Colours",
     "nl": "Kleuren"
@@ -30,26 +30,26 @@
     {
       "id": "female",
       "name": {
-        "en": "Lily",
-        "nl": "Lily"
+        "en": "Heart",
+        "nl": "Heart"
       },
       "gender": "female",
-      "lang": "en-GB",
+      "lang": "en-US",
       "engine": "kokoro",
-      "voice": "bf_lily",
+      "voice": "af_heart",
       "credit": "Kokoro-82M by hexgrad",
       "license": "Apache-2.0"
     },
     {
       "id": "male",
       "name": {
-        "en": "Lewis",
-        "nl": "Lewis"
+        "en": "Michael",
+        "nl": "Michael"
       },
       "gender": "male",
-      "lang": "en-GB",
+      "lang": "en-US",
       "engine": "kokoro",
-      "voice": "bm_lewis",
+      "voice": "am_michael",
       "credit": "Kokoro-82M by hexgrad",
       "license": "Apache-2.0"
     }

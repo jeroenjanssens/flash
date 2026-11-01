@@ -80,10 +80,12 @@ Go through every card:
 just audio ../flash-decks/<folder>
 ```
 
-Makes an MP3 per word in each voice (`female`: Kokoro `bf_lily`, `male`: `bm_lewis`, British
-English) and adds the paths to `deck.json`. It only makes clips whose word changed, so it's fast
-to run again. To compare other voices: `just voices ../flash-decks/<folder>` and open
-`voice-preview/index.html`.
+Makes an MP3 per word in each voice (`female`: Kokoro `af_heart`, `male`: `am_michael`, both
+American English, chosen by ear) and adds the paths to `deck.json`. It only makes clips whose
+word changed, so it's fast to run again. To compare other voices: `just voices ../flash-decks/<folder>`
+and open `voice-preview/index.html`. Some voices add a short "-eh" after a final consonant
+("fridge-eh"); `just audio <deck> --method carrier` says each word inside "I said … twice" and
+cuts it out, which avoids that.
 
 ## 6. Check
 

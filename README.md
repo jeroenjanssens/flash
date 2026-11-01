@@ -22,7 +22,7 @@ pronunciation) and knows which ones you still need to practise.
   with records.
 - **All cards** of a deck with both voices, and **statistics**: what you know, practice per day,
   what's coming up, the hardest words and the most common misspellings.
-- **Pronunciation** in a female and a male British voice, made with Kokoro.
+- **Pronunciation** in a female and a male American voice, made with Kokoro.
 - **Profiles** for every child, with a streak and a daily goal, and a **parent area** behind a
   sum.
 - **Sync** between iPad, iPhone and laptop through one secret GitHub gist for the family; a

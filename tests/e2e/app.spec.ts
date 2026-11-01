@@ -152,8 +152,8 @@ test('the cards page shows every card with both voices', async ({ page }) => {
   await page.getByPlaceholder('Zoeken').fill('rood')
   await expect(page.locator('.grid .card')).toHaveCount(1)
   await page.locator('.grid .card').click()
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Lily' })).toBeVisible()
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Lewis' })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Heart' })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Michael' })).toBeVisible()
 })
 
 test('deck settings switch templates and set a test date', async ({ page }) => {

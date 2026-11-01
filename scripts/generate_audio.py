@@ -42,23 +42,28 @@ CANDIDATES = [
 _pipelines: dict[str, object] = {}
 
 
-def pipeline(lang: str):
-    """Kokoro's pipeline for a language: 'b' is British English, 'a' American English."""
+def pipeline(voice: str, lang: str):
+    """Kokoro's pipeline: 'b' British English, 'a' American English. The voice decides (its name
+    starts with the code: bf_lily, af_heart), so an American voice also pronounces like one."""
     from kokoro import KPipeline
 
-    code = "b" if lang.lower() in ("en-gb", "en") else "a"
+    code = voice[0] if voice[:1] in ("a", "b") else ("b" if lang.lower() in ("en-gb", "en") else "a")
     if code not in _pipelines:
         _pipelines[code] = KPipeline(lang_code=code, repo_id="hexgrad/Kokoro-82M")
     return _pipelines[code]
 
 
-# How clips are made; part of sources.json, so changing it makes every clip again.
-METHOD = "carrier-1"
+# How clips are made (--method); part of sources.json, so changing it makes every clip again.
+#   plain:   the word on its own, with a full stop (chosen by ear, with af_heart and am_michael)
+#   carrier: the word cut out of "I said … twice" (avoids an "-eh" after a final consonant,
+#            which some voices add; it sounded best with bf_lily)
+METHODS = ("plain", "carrier")
+METHOD = "plain"
 CARRIER = ("I said", "twice.")
 
 
 def say(text: str, voice: str, lang: str):
-    results = list(pipeline(lang)(text, voice=voice))
+    results = list(pipeline(voice, lang)(text, voice=voice))
     audio = np.concatenate([np.asarray(r.audio) for r in results])
     tokens = [t for r in results for t in (r.tokens or [])]
     return audio, tokens
@@ -73,6 +78,12 @@ def fade(x: np.ndarray, ms_in: float = 2, ms_out: float = 20) -> np.ndarray:
 
 
 def synthesize(text: str, voice: str, lang: str) -> np.ndarray:
+    if METHOD == "plain":
+        return say(text + "." if text[-1:].isalnum() else text, voice, lang)[0]
+    return synthesize_carrier(text, voice, lang)
+
+
+def synthesize_carrier(text: str, voice: str, lang: str) -> np.ndarray:
     """The text, said inside a short sentence and cut out of it.
 
     Said on its own, Kokoro adds a short "-eh" after a final consonant ("fridge-eh"). Inside
@@ -127,7 +138,7 @@ def generate(deck_dir: Path, only_voice: str | None, force: bool) -> None:
             audio = value.setdefault("audio", {})
             for voice in voices:
                 src = f"media/audio/{voice['id']}/{card['id']}-{field_id}.mp3"
-                wanted = {"text": value["text"], "voice": voice["voice"], "lang": lang, "method": METHOD}
+                wanted = {"text": value["text"], "voice": voice["voice"], "lang": lang, "method": f"{METHOD}-1"}
                 if force or sources.get(src) != wanted or not (deck_dir / src).exists():
                     encode(synthesize(value["text"], voice["voice"], lang), deck_dir / src)
                     sources[src] = wanted
@@ -178,7 +189,10 @@ def main() -> None:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--preview", type=Path, metavar="DIR")
     parser.add_argument("--voices", help="comma-separated Kokoro voices for --preview, e.g. bf_lily,af_heart")
+    parser.add_argument("--method", choices=METHODS, default="plain", help="how clips are made (see METHODS)")
     args = parser.parse_args()
+    global METHOD
+    METHOD = args.method
     if args.preview:
         preview(args.deck, args.preview, args.voices.split(",") if args.voices else None)
     else:
