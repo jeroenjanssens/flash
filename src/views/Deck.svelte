@@ -3,7 +3,7 @@
   import Icon, { type IconName } from '../components/Icon.svelte'
   import Ring from '../components/Ring.svelte'
   import { activeTemplates, hasSpokenPrompt } from '../lib/deck/items'
-  import { deckCounts } from '../lib/srs/queue'
+  import { deckCounts, weakest } from '../lib/srs/queue'
   import { cardLevels, deckProgress, readiness } from '../lib/study/stats'
   import { daysUntil } from '../lib/time'
   import { save } from '../state/app.svelte'
@@ -22,6 +22,8 @@
   const testIn = $derived(progress?.testDate ? daysUntil(progress.testDate, Date.now()) : undefined)
   const active = $derived(activeTemplates(deck, progress?.templates))
   const canListen = $derived(deck.templates.some(hasSpokenPrompt))
+  /** Whether an extra round has something to ask (studied, and not asked in the last hour). */
+  const studied = $derived(weakest([deck], s, Date.now()).length > 0)
 
   const base = $derived(`deck/${deck.id}`)
   const practice = $derived(
@@ -81,15 +83,33 @@
       </p>
       <p class="small muted">{active.map((tpl) => loc(tpl.name) || tpl.id).join(' · ')}</p>
     </div>
-    <a
-      class="btn primary big"
-      class:disabled={!counts.due && !counts.newCards}
-      href={href(`${base}/learn`)}
-      aria-disabled={!counts.due && !counts.newCards}
-    >
-      <Icon name="play" filled />{t('deck.start')}
-    </a>
+    <div class="learn-actions">
+      {#if counts.due || counts.newCards}
+        <a class="btn primary big" href={href(`${base}/learn`)}>
+          <Icon name="play" filled />{t('deck.start')}
+        </a>
+      {:else if studied}
+        <a class="btn primary big" href={href(`${base}/learn`, { extra: '1' })}>
+          <Icon name="play" filled />{t('extra.button')}
+        </a>
+      {/if}
+      {#if !counts.newCards && counts.unseen}
+        <a class="btn" href={href(`${base}/learn`, { new: '5' })}>
+          <Icon name="plus" />{t('extra.moreNew', { count: Math.min(5, counts.unseen) })}
+        </a>
+      {/if}
+    </div>
   </section>
+
+  {#if !counts.due && !counts.newCards && studied && testIn !== undefined && testIn >= 0 && testIn <= 2}
+    <a class="nudge panel" href={href(`${base}/learn`, { extra: '1' })}>
+      <span aria-hidden="true">💪</span>
+      <span>
+        <strong>{testIn === 0 ? t('extra.nudgeToday') : t('extra.nudge')}</strong>
+        <span class="muted small block">{t('extra.text')}</span>
+      </span>
+    </a>
+  {/if}
 
   <a class="test panel flat" href={href(`${base}/settings`)}>
     <span class="test-icon" aria-hidden="true">📅</span>
@@ -170,10 +190,26 @@
     display: grid;
     gap: 4px;
   }
-  .disabled {
-    opacity: 0.45;
-    pointer-events: none;
+  .learn-actions {
+    display: grid;
+    gap: 8px;
+    justify-items: stretch;
+  }
+  .nudge {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    text-decoration: none;
+    margin-bottom: 14px;
+    padding: 14px 18px;
+    background: var(--warn-soft);
     box-shadow: none;
+  }
+  .nudge > span:first-child {
+    font-size: 28px;
+  }
+  .block {
+    display: block;
   }
   .test {
     display: flex;

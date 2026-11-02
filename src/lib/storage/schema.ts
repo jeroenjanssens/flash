@@ -32,7 +32,8 @@ export interface DeckProgress {
   items: Record<string, Record<string, ItemRecord>>
 }
 
-export type Mode = 'learn' | 'type' | 'choose' | 'listen' | 'flip' | 'sprint' | 'race'
+/** `extra`: "one more round" of Learn; like `learn`, it changes the schedule. */
+export type Mode = 'learn' | 'extra' | 'type' | 'choose' | 'listen' | 'flip' | 'sprint' | 'race'
 
 export interface ReviewEntry {
   t: number

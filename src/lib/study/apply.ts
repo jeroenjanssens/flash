@@ -7,7 +7,8 @@ import { autoGrade, type Answer } from './grade'
 export const MAX_LOG = 50_000
 
 /**
- * Record an answer: always in the log; in Learn also in the schedule (and the learn stage).
+ * Record an answer: always in the log; in Learn (and its extra rounds) also in the schedule (and
+ * the learn stage).
  * Returns the item's new record, or undefined when the schedule didn't change.
  */
 export function applyAnswer(
@@ -23,7 +24,7 @@ export function applyAnswer(
   const before = progress.items[item.card.id]?.[item.template.id]
   let record: ItemRecord | undefined
   let rating: ReviewEntry['grade']
-  if (mode === 'learn') {
+  if (mode === 'learn' || mode === 'extra') {
     rating = autoGrade(answer, before)
     record = grade(before, rating, now, progress.testDate)
     const stage = nextStage(answer.method, answer.correct, before?.stage)

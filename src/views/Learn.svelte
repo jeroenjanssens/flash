@@ -6,7 +6,14 @@
   import SessionBar from '../components/SessionBar.svelte'
   import Summary from '../components/Summary.svelte'
   import type { Card } from '../lib/deck/types'
-  import { Session, buildQueue, learnMethod, recordOf, type SessionItem } from '../lib/srs/queue'
+  import {
+    Session,
+    buildQueue,
+    learnMethod,
+    recordOf,
+    weakest,
+    type SessionItem,
+  } from '../lib/srs/queue'
   import { applyAnswer } from '../lib/study/apply'
   import type { Answer } from '../lib/study/grade'
   import { levelOf } from '../lib/study/stats'
@@ -14,7 +21,7 @@
   import { audio, save } from '../state/app.svelte'
   import { deckById, decks, type LoadedDeck } from '../state/decks.svelte'
   import { t } from '../state/i18n.svelte'
-  import { href, navigate } from '../state/router.svelte'
+  import { href, navigate, route } from '../state/router.svelte'
   import { pickVoice } from '../state/speak'
   import { session as sessionState } from '../state/ui.svelte'
 
@@ -22,6 +29,10 @@
   let { deckIds }: { deckIds: string[] | undefined } = $props()
 
   const s = save()
+  // ?extra=1: "one more round" (fills up with the weakest words); ?new=5: more new words today.
+  const extra = route.query.extra === '1'
+  const newBonus = Math.max(0, Math.min(50, Number(route.query.new) || 0))
+  const mode = extra ? 'extra' : 'learn'
   const chosen = (() =>
     deckIds ? deckIds.map(deckById).filter((d): d is LoadedDeck => !!d) : decks.list)()
   const session = new Session(
@@ -30,6 +41,7 @@
       s,
       Date.now(),
       s.settings.sessionSize,
+      { extra, newBonus },
     ),
   )
   const total = session.left
@@ -90,7 +102,7 @@
       mistakes: [...mistakes.entries()],
     }
     const before = levelOf(recordOf(s.decks[current.deck.id], current.card.id, current.template.id))
-    pending = applyAnswer(s, current, answer, 'learn', Date.now())
+    pending = applyAnswer(s, current, answer, mode, Date.now())
     if (answer.correct) right++
     else {
       wrong++
@@ -142,6 +154,23 @@
     if (e.key === 'u' && !(e.target instanceof HTMLInputElement) && !e.metaKey && !e.ctrlKey) undo()
   }
 
+  /** Whether another extra round would have something to ask (checked when the session ends). */
+  const canExtra = $derived(
+    finished &&
+      weakest(
+        chosen.map((d) => d.deck),
+        s,
+        Date.now(),
+      ).length > 0,
+  )
+  /** Another extra round (a new query, so the page starts again). */
+  const again = $derived(
+    href(deckIds?.length === 1 ? `deck/${deckIds[0]}/learn` : 'learn', {
+      extra: '1',
+      r: String(Date.now()),
+    }),
+  )
+
   const back = $derived(deckIds?.length === 1 ? href(`deck/${deckIds[0]}`) : href(''))
 </script>
 
@@ -150,8 +179,9 @@
 {#if finished}
   <main class="page narrow">
     {#if total === 0}
-      <Summary title={t('learn.nothing')} stats={[]}>
+      <Summary title={extra ? t('extra.nothing') : t('learn.nothing')} stats={[]}>
         {#snippet actions()}
+          {#if canExtra}<a class="btn big" href={again}>{t('extra.button')}</a>{/if}
           <a class="btn primary big" href={back}>{t('common.done')}</a>
         {/snippet}
       </Summary>
@@ -175,6 +205,7 @@
               })}>{t('summary.practiseMistakes')}</a
             >
           {/if}
+          {#if canExtra}<a class="btn big" href={again}>{t('extra.button')}</a>{/if}
           {#if undoPoint}
             <button class="btn big ghost" onclick={undo}
               ><Icon name="undo" />{t('common.undo')}</button

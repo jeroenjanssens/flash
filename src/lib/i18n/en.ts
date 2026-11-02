@@ -73,6 +73,12 @@ export const en = {
   'templates.cards': '{count|1 card|{count} cards}',
   'templates.reset': 'Back to the default',
 
+  'extra.button': 'One more round',
+  'extra.text': "The words you're most likely to forget now, even if they're not due yet.",
+  'extra.nothing': 'You just practised everything. Come back in an hour for another round!',
+  'extra.moreNew': '{count|+1 new word|+{count} new words}',
+  'extra.nudge': 'The test is tomorrow: one more round tonight?',
+  'extra.nudgeToday': 'The test is today: one more round?',
   'learn.newWord': 'New word',
   'learn.gotIt': 'Got it',
   'learn.nothing': 'Nothing to learn right now!',

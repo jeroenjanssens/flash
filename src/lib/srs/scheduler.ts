@@ -20,12 +20,13 @@ function scheduler(retention: number): FSRS {
 }
 
 /**
- * The retention to aim for: 90% normally, 95% in the week before a test, so cards come back
- * more often when it matters.
+ * The retention to aim for: 90% normally, 95% in the week before a test and 97% on the last
+ * two days, so cards come back more often when it matters.
  */
 export function retentionFor(now: number, testDate?: string): number {
   if (!testDate) return 0.9
   const days = daysUntil(testDate, now)
+  if (days >= 0 && days <= 1) return 0.97
   return days >= 0 && days <= 7 ? 0.95 : 0.9
 }
 

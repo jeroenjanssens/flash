@@ -25,9 +25,14 @@ sync and merge, FSRS scheduler, sprint and race, i18n, audio engine, charts).
 > - **Not built (yet):** distractors from other decks of the same collection (decks have enough
 >   cards), letter tiles (for Olivier, later), and example sentences.
 > - **Questions about the same word are spread out** (2 November): a new word starts with two
->   templates, only one due review per word per day is asked (the others wait a day, like Anki's
->   "bury siblings"), templates switched on later start for a word once per day, and two questions
->   about the same word are at least four questions apart in a session.
+>   templates, only one due review per word is asked (the others wait at least 4 hours, like
+>   Anki's "bury siblings" but per half day), templates switched on later start for a word once
+>   per day, and two questions about the same word are at least four questions apart in a session.
+> - **"Nog een rondje"** (one more round): after what's due, the words most likely forgotten
+>   now (lowest FSRS retrievability, not asked in the last hour), one way each. It counts for the
+>   schedule with the real time, so morning and evening sessions both help. Plus "+5 nieuwe
+>   woorden" past the daily limit, 97% retention on the last two days before a test, and a nudge
+>   on the deck page then.
 > - **Tests:** 39 unit tests and 13 end-to-end tests, each on laptop, iPhone and iPad sizes.
 
 Each decision lists a **default** (what I'll build unless you say otherwise) and the

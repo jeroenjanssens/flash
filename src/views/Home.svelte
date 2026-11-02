@@ -3,7 +3,7 @@
   import Header from '../components/Header.svelte'
   import Icon from '../components/Icon.svelte'
   import Ring from '../components/Ring.svelte'
-  import { deckCounts } from '../lib/srs/queue'
+  import { deckCounts, weakest } from '../lib/srs/queue'
   import { answersToday, streak } from '../lib/study/stats'
   import { currentProfile, save } from '../state/app.svelte'
   import { decks, type LoadedDeck } from '../state/decks.svelte'
@@ -21,6 +21,15 @@
       const c = deckCounts(d.deck, s, now)
       return sum + c.due + c.newCards
     }, 0),
+  )
+
+  /** Whether an extra round has something to ask (studied, and not asked in the last hour). */
+  const studied = $derived(
+    weakest(
+      decks.list.map((d) => d.deck),
+      s,
+      now,
+    ).length > 0,
   )
 
   /** Decks grouped by collection, in order. */
@@ -70,6 +79,10 @@
   {#if decks.list.length && total > 0}
     <a class="btn primary big learn" href={href('learn')}>
       <Icon name="play" filled />{t('home.learn')}
+    </a>
+  {:else if studied}
+    <a class="btn big learn extra" href={href('learn', { extra: '1' })}>
+      <Icon name="play" filled />{t('extra.button')}
     </a>
   {/if}
 
@@ -144,6 +157,10 @@
     margin-bottom: 28px;
     font-size: 1.4rem;
     min-height: 72px;
+  }
+  .learn.extra {
+    background: var(--surface);
+    box-shadow: var(--shadow);
   }
   .group {
     display: grid;

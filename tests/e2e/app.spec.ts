@@ -295,3 +295,37 @@ test('My Home is built in, with its pictures and both voices', async ({ page }) 
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Juf' })).toBeVisible()
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Meester' })).toBeVisible()
 })
+
+test('one more round, a few hours later, with more new words and a nudge before a test', async ({
+  page,
+}) => {
+  await page.clock.install()
+  await createProfile(page)
+  await page.goto(`/#/deck/${deck.id}/learn`)
+  await finishSession(page)
+  await page.getByRole('link', { name: 'Klaar' }).click()
+  // Everything was just asked: no extra round yet, but more new words are possible.
+  await expect(page.getByText('Klaar voor vandaag!')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Nog een rondje' })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: '+1 nieuw woord' })).toBeVisible()
+  // In the evening, the words she knows least are asked again.
+  await page.clock.fastForward('03:00:00')
+  await page.goto(`/#/deck/${deck.id}/settings`)
+  await page.locator('.chip').first().click() // a test tomorrow
+  await page.goto(`/#/deck/${deck.id}`)
+  await expect(page.getByText('Morgen is de toets: vanavond nog een rondje?')).toBeVisible()
+  await page.getByRole('link', { name: 'Nog een rondje' }).first().click()
+  await expect(page.locator('.prompt')).toBeVisible()
+  await answer(page)
+  await expect(page.getByText(/Goed zo!/)).toBeVisible()
+  // It counts for the schedule, as an extra round (progress is saved shortly after).
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const id = localStorage.getItem('flash:current')
+        const save = JSON.parse(localStorage.getItem(`flash:save:${id}`) ?? '{}')
+        return [...new Set(save.log.map((e: { mode: string }) => e.mode))]
+      }),
+    )
+    .toEqual(['learn', 'extra'])
+})

@@ -75,6 +75,12 @@ export const nl = {
   'templates.cards': '{count|1 kaart|{count} kaarten}',
   'templates.reset': 'Terug naar standaard',
 
+  'extra.button': 'Nog een rondje',
+  'extra.text': 'De woorden die je nu het snelst vergeet, ook als ze nog niet aan de beurt zijn.',
+  'extra.nothing': 'Je hebt alles net geoefend. Kom over een uurtje terug voor nog een rondje!',
+  'extra.moreNew': '{count|+1 nieuw woord|+{count} nieuwe woorden}',
+  'extra.nudge': 'Morgen is de toets: vanavond nog een rondje?',
+  'extra.nudgeToday': 'Vandaag is de toets: nog een rondje?',
   'learn.newWord': 'Nieuw woord',
   'learn.gotIt': 'Begrepen',
   'learn.nothing': 'Er is nu niets te leren!',

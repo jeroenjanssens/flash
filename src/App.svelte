@@ -50,7 +50,9 @@
   {:else if page === 'settings'}
     <Settings />
   {:else if page === 'learn'}
-    {#if decks.loaded}<Learn deckIds={undefined} />{/if}
+    {#if decks.loaded}
+      {#key JSON.stringify(route.query)}<Learn deckIds={undefined} />{/key}
+    {/if}
   {:else if page === 'deck'}
     {#if !decks.loaded}
       <div class="loading" aria-busy="true"></div>
@@ -62,7 +64,7 @@
     {:else if sub === ''}
       <DeckPage {loaded} />
     {:else if sub === 'learn'}
-      <Learn deckIds={[loaded.deck.id]} />
+      {#key JSON.stringify(route.query)}<Learn deckIds={[loaded.deck.id]} />{/key}
     {:else if sub === 'practice'}
       {#key route.segments[3]}
         <Practice

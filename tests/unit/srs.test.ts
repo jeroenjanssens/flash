@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { applyAnswer } from '../../src/lib/study/apply'
 import { capForTest, grade, retentionFor } from '../../src/lib/srs/scheduler'
 import {
   Session,
@@ -243,5 +244,118 @@ describe('questions about the same card are spread out', () => {
     const forks = s.queue.map((q, i) => (q.card.id === 'fork' ? i : -1)).filter((i) => i >= 0)
     expect(forks).toHaveLength(2)
     expect(Math.abs(forks[1] - forks[0])).toBeGreaterThan(2)
+  })
+})
+
+describe('one more round', () => {
+  const deck = testDeck()
+  const HOUR = 3_600_000
+  const reviewed = (daysAgo: number, stability: number) => ({
+    ...grade(undefined, 4, NOW - daysAgo * DAY),
+    state: 2 as const,
+    stability,
+    last_review: NOW - daysAgo * DAY,
+    due: NOW + 3 * DAY,
+  })
+  const asked = (card: string, template: string, t: number) => ({
+    t,
+    deck: deck.id,
+    card,
+    template,
+    mode: 'learn' as const,
+    method: 'type' as const,
+    correct: true,
+    hints: 0,
+    ms: 1,
+  })
+
+  it('a buried review comes back after half a day', () => {
+    const save = emptySave('p')
+    save.settings.newPerDay = 0
+    const due = { ...reviewed(5, 4), due: NOW - DAY }
+    save.decks[deck.id] = {
+      updatedAt: 0,
+      items: { fork: { 'picture-to-word': due, 'dutch-to-english': due } },
+    }
+    save.log.push(
+      asked('fork', 'picture-to-word', NOW - 5 * DAY),
+      asked('fork', 'dutch-to-english', NOW - 5 * DAY),
+    )
+    save.log.push(asked('fork', 'picture-to-word', NOW - 60_000))
+    save.decks[deck.id].items.fork['picture-to-word'] = {
+      ...due,
+      due: NOW + 5 * DAY,
+      last_review: NOW - 60_000,
+    }
+    expect(buildQueue([deck], save, NOW, 100)).toEqual([])
+    expect(buildQueue([deck], save, NOW + 2 * HOUR, 100)).toEqual([])
+    expect(buildQueue([deck], save, NOW + 5 * HOUR, 100).map((i) => i.template.id)).toEqual([
+      'dutch-to-english',
+    ])
+  })
+
+  it('asks the weakest cards first, one way each, not the ones just asked', () => {
+    const save = emptySave('p')
+    save.settings.newPerDay = 0
+    save.decks[deck.id] = {
+      updatedAt: 0,
+      items: {
+        fork: { 'picture-to-word': reviewed(3, 2), 'dutch-to-english': reviewed(3, 30) },
+        knife: { 'picture-to-word': reviewed(3, 10), 'dutch-to-english': reviewed(3, 12) },
+        spoon: { 'picture-to-word': reviewed(3, 3), 'dutch-to-english': reviewed(3, 1) },
+        cup: { 'picture-to-word': reviewed(3, 1), 'dutch-to-english': reviewed(3, 1) },
+      },
+    }
+    // cup was just asked.
+    save.log.push(asked('cup', 'picture-to-word', NOW - 10 * 60_000))
+    // Nothing is due, so a normal session is empty…
+    expect(buildQueue([deck], save, NOW, 100)).toEqual([])
+    // …and one more round asks the weakest first.
+    const q = buildQueue([deck], save, NOW, 100, { extra: true })
+    expect(q.map((i) => `${i.card.id}:${i.template.id}`)).toEqual([
+      'spoon:dutch-to-english',
+      'fork:picture-to-word',
+      'knife:picture-to-word',
+    ])
+  })
+
+  it('counts extra rounds for the schedule', () => {
+    const save = emptySave('p')
+    const item = { deck, card: deck.cards[0], template: deck.templates[0] }
+    const r = applyAnswer(
+      save,
+      item,
+      { method: 'type', correct: true, hints: 0, ms: 2000 },
+      'extra',
+      NOW,
+    )
+    expect(r).toBeDefined()
+    expect(save.log[0].mode).toBe('extra')
+  })
+
+  it('gives extra new cards on top of the daily limit', () => {
+    const save = emptySave('p')
+    save.settings.newPerDay = 2
+    for (const card of ['fork', 'knife'])
+      save.log.push({ ...asked(card, 'picture-to-word', NOW - HOUR), intro: true })
+    save.decks[deck.id] = {
+      updatedAt: 0,
+      items: Object.fromEntries(
+        ['fork', 'knife'].map((c) => [
+          c,
+          { 'picture-to-word': { ...grade(undefined, 3, NOW - HOUR), due: NOW + DAY } },
+        ]),
+      ),
+    }
+    expect(buildQueue([deck], save, NOW, 100).filter((i) => i.intro)).toHaveLength(0)
+    expect(buildQueue([deck], save, NOW, 100, { newBonus: 3 }).filter((i) => i.intro)).toHaveLength(
+      3,
+    )
+  })
+
+  it('aims for 97% on the last two days before a test', () => {
+    expect(retentionFor(NOW, '2026-11-03')).toBe(0.97)
+    expect(retentionFor(NOW, '2026-11-02')).toBe(0.97)
+    expect(retentionFor(NOW, '2026-11-04')).toBe(0.95)
   })
 })

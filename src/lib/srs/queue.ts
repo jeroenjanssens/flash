@@ -1,7 +1,8 @@
 import { activeTemplates, applies, isPictureAnswer } from '../deck/items'
 import type { Card, Deck, Method, Template } from '../deck/types'
 import type { AnswerStyle, DeckProgress, ItemRecord, ProfileSave } from '../storage/schema'
-import { MINUTE, dayKey } from '../time'
+import { HOUR, MINUTE, dayKey } from '../time'
+import { retrievability } from './scheduler'
 
 /** A question in a session: a card, asked with a template, from a deck. */
 export interface SessionItem {
@@ -45,26 +46,38 @@ export const SIBLING_GAP = 4
 
 const cardKey = (item: { deck: Deck; card: Card }) => `${item.deck.id}/${item.card.id}`
 
-/** What was asked today in Learn, per card: a review of a template seen before, or a new template. */
-function today(save: ProfileSave, deckId: string, now: number) {
+/** Another due review of the same card waits at least this long (morning, then evening). */
+export const BURY_HOURS = 4
+/** "One more round" doesn't ask a card that was asked less than this long ago. */
+export const EXTRA_MIN_HOURS = 1
+
+/** Modes that change the schedule. */
+const scheduled = (mode: string) => mode === 'learn' || mode === 'extra'
+
+/** When each card was last asked in Learn, and which cards started a new template today. */
+function history(save: ProfileSave, deckId: string, now: number) {
   const day = dayKey(now)
   const before = new Set<string>()
-  const seenToday = new Map<string, Set<string>>()
+  const lastAsked = new Map<string, number>()
   for (const e of save.log) {
-    if (e.deck !== deckId || e.mode !== 'learn') continue
-    const key = `${e.card}/${e.template}`
-    if (dayKey(e.t) === day) {
-      if (!seenToday.has(e.card)) seenToday.set(e.card, new Set())
-      seenToday.get(e.card)!.add(e.template)
-    } else before.add(key)
+    if (e.deck !== deckId || !scheduled(e.mode)) continue
+    if (dayKey(e.t) !== day) before.add(`${e.card}/${e.template}`)
+    lastAsked.set(e.card, Math.max(lastAsked.get(e.card) ?? 0, e.t))
   }
+  const started = new Set<string>()
+  for (const e of save.log)
+    if (
+      e.deck === deckId &&
+      scheduled(e.mode) &&
+      dayKey(e.t) === day &&
+      !before.has(`${e.card}/${e.template}`)
+    )
+      started.add(e.card)
   return {
-    /** A template of the card that had been seen before was reviewed today. */
-    reviewed: (card: string) =>
-      [...(seenToday.get(card) ?? [])].some((tpl) => before.has(`${card}/${tpl}`)),
+    /** How long ago the card was last asked (Infinity: never). */
+    since: (card: string) => now - (lastAsked.get(card) ?? -Infinity),
     /** A template of the card was asked for the first time today. */
-    started: (card: string) =>
-      [...(seenToday.get(card) ?? [])].some((tpl) => !before.has(`${card}/${tpl}`)),
+    started: (card: string) => started.has(card),
   }
 }
 
@@ -83,15 +96,16 @@ interface Selection {
  * and would make the scheduler think it's known better than it is:
  * - a new card starts with its first `FIRST_DAY_TEMPLATES` templates;
  * - a card's learning steps (after a first or a wrong answer) are always asked;
- * - of a card's reviews that are due, only one per day is asked (the most overdue): the others
- *   wait until the next day ("burying siblings", as in Anki);
+ * - of a card's reviews that are due, only one is asked (the most overdue); the others wait at
+ *   least `BURY_HOURS` after the card was asked ("burying siblings", as in Anki, but per half
+ *   day, so a morning and an evening session both work);
  * - a template that was switched on later starts for one card at most once per day.
  */
-function select(deck: Deck, save: ProfileSave, now: number): Selection {
+function select(deck: Deck, save: ProfileSave, now: number, newBonus = 0): Selection {
   const progress = save.decks[deck.id]
   const templates = activeTemplates(deck, progress?.templates)
-  const asked = today(save, deck.id, now)
-  let newLeft = Math.max(0, save.settings.newPerDay - newCardsToday(save, deck.id, now))
+  const asked = history(save, deck.id, now)
+  let newLeft = Math.max(0, save.settings.newPerDay + newBonus - newCardsToday(save, deck.id, now))
   const out: Selection = { due: [], fresh: [], unseen: 0 }
   for (const card of deck.cards) {
     const usable = templates.filter((t) => applies(t, card))
@@ -116,7 +130,7 @@ function select(deck: Deck, save: ProfileSave, now: number): Selection {
       else if (r.state === 1 || r.state === 3) out.due.push({ item, due: r.due })
       else if (!review || r.due < review.due) review = { item, due: r.due }
     }
-    if (review && !asked.reviewed(card.id)) out.due.push(review)
+    if (review && asked.since(card.id) >= BURY_HOURS * HOUR) out.due.push(review)
     // A template that was never asked comes after the reviews.
     if (start && !asked.started(card.id)) out.due.push({ item: start, due: now })
   }
@@ -156,21 +170,34 @@ export function spread(items: SessionItem[], gap = SIBLING_GAP): SessionItem[] {
   return out
 }
 
+export interface QueueOptions {
+  /** New cards on top of today's limit ("+5 new words"). */
+  newBonus?: number
+  /**
+   * "One more round": after what's due, fill up with the cards that are most likely forgotten
+   * by now (lowest retrievability), one template per card, even if they aren't due yet. Their
+   * answers count with the real time since the last review, so FSRS handles them correctly.
+   */
+  extra?: boolean
+}
+
 /**
  * The questions for a Learn session: due questions first (most overdue first), then new cards
- * in deck order (each introduced, then asked with its first-day templates), spread out so the
- * same card isn't asked twice close together, up to `size`.
+ * in deck order (each introduced, then asked with its first-day templates), and for an extra
+ * round the weakest cards, spread out so the same card isn't asked twice close together, up to
+ * `size`.
  */
 export function buildQueue(
   decks: Deck[],
   save: ProfileSave,
   now: number,
   size: number,
+  options: QueueOptions = {},
 ): SessionItem[] {
   const due: { item: SessionItem; due: number }[] = []
   const fresh: SessionItem[][] = []
   for (const deck of decks) {
-    const s = select(deck, save, now)
+    const s = select(deck, save, now, options.newBonus)
     due.push(...s.due)
     fresh.push(...s.fresh)
   }
@@ -179,7 +206,40 @@ export function buildQueue(
   // New cards: first every new card's first template, then the second templates.
   const rounds = Math.max(0, ...fresh.map((f) => f.length))
   for (let r = 0; r < rounds; r++) for (const f of fresh) if (f[r]) queue.push(f[r])
+  if (options.extra && queue.length < size) {
+    const taken = new Set(queue.map(cardKey))
+    queue.push(...weakest(decks, save, now, taken).slice(0, size - queue.length))
+  }
   return spread(queue).slice(0, size)
+}
+
+/** The weakest template of every studied card (not asked in the last hour), weakest first. */
+export function weakest(
+  decks: Deck[],
+  save: ProfileSave,
+  now: number,
+  skip = new Set<string>(),
+): SessionItem[] {
+  const out: { item: SessionItem; r: number }[] = []
+  for (const deck of decks) {
+    const progress = save.decks[deck.id]
+    const templates = activeTemplates(deck, progress?.templates)
+    const asked = history(save, deck.id, now)
+    for (const card of deck.cards) {
+      if (skip.has(`${deck.id}/${card.id}`) || asked.since(card.id) < EXTRA_MIN_HOURS * HOUR)
+        continue
+      let best: { item: SessionItem; r: number } | undefined
+      for (const template of templates) {
+        if (!applies(template, card)) continue
+        const record = recordOf(progress, card.id, template.id)
+        if (!record || record.state !== 2) continue
+        const r = retrievability(record, now) ?? 1
+        if (!best || r < best.r) best = { item: { deck, card, template }, r }
+      }
+      if (best) out.push(best)
+    }
+  }
+  return out.sort((a, b) => a.r - b.r).map((x) => x.item)
 }
 
 /** How the answer is given in Learn, for a learner's answer style. */
