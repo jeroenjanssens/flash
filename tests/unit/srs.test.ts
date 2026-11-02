@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { capForTest, grade, retentionFor } from '../../src/lib/srs/scheduler'
-import { Session, buildQueue, deckCounts, learnMethod, nextStage } from '../../src/lib/srs/queue'
+import {
+  Session,
+  buildQueue,
+  deckCounts,
+  learnMethod,
+  nextStage,
+  spread,
+} from '../../src/lib/srs/queue'
 import { emptySave } from '../../src/lib/storage/schema'
 import { DAY, startOfDay } from '../../src/lib/time'
 import { testDeck } from '../fixtures/deck'
@@ -96,5 +103,145 @@ describe('session progress', () => {
     s.next({ ...grade(undefined, 4, NOW), due: NOW + 5 * DAY }, NOW)
     expect(s.remaining).toBe(3)
     expect(s.progress).toBe(0.375)
+  })
+})
+
+describe('questions about the same card are spread out', () => {
+  const deck = testDeck()
+  const all = deck.templates.map((t) => t.id)
+  const key = (i: { card: { id: string }; template: { id: string } }) =>
+    `${i.card.id}:${i.template.id}`
+  /** The smallest number of questions between two questions about the same card. */
+  const minGap = (q: { card: { id: string } }[]) => {
+    let min = Infinity
+    q.forEach((item, i) => {
+      const j = q.findIndex((other, k) => k > i && other.card.id === item.card.id)
+      if (j > 0) min = Math.min(min, j - i - 1)
+    })
+    return min
+  }
+  const known = (now: number) => ({
+    ...grade(undefined, 4, now - 5 * DAY),
+    state: 2 as const,
+    due: now - DAY,
+  })
+
+  it('starts new cards with two templates, even when all are on', () => {
+    const save = emptySave('p')
+    save.settings.newPerDay = 7
+    save.decks[deck.id] = { updatedAt: 0, items: {}, templates: all }
+    const q = buildQueue([deck], save, NOW, 100)
+    expect(q).toHaveLength(14)
+    expect(new Set(q.map((i) => i.template.id))).toEqual(
+      new Set(['picture-to-word', 'dutch-to-english']),
+    )
+    expect(minGap(q)).toBeGreaterThanOrEqual(4)
+  })
+
+  it('switching on templates for known cards adds one per card per day, spread out', () => {
+    // The situation that showed the problem: cards learned with two templates, then all on.
+    const save = emptySave('p')
+    save.settings.newPerDay = 0
+    const r = known(NOW)
+    save.decks[deck.id] = {
+      updatedAt: 0,
+      templates: all,
+      items: Object.fromEntries(
+        deck.cards.map((c) => [
+          c.id,
+          { 'picture-to-word': r, 'dutch-to-english': { ...r, due: NOW - 2 * DAY } },
+        ]),
+      ),
+    }
+    const q = buildQueue([deck], save, NOW, 100)
+    for (const card of deck.cards) {
+      const mine = q.filter((i) => i.card.id === card.id).map((i) => i.template.id)
+      // One review (the most overdue of the two) and one template it hasn't been asked with.
+      expect(mine).toEqual(['dutch-to-english', 'word-to-picture'])
+    }
+    expect(minGap(q)).toBeGreaterThanOrEqual(4)
+    expect(deckCounts(deck, save, NOW).due).toBe(q.length)
+  })
+
+  it('buries the other due reviews of a card until the next day', () => {
+    const save = emptySave('p')
+    save.settings.newPerDay = 0
+    const r = known(NOW)
+    save.decks[deck.id] = {
+      updatedAt: 0,
+      items: { fork: { 'picture-to-word': r, 'dutch-to-english': r } },
+    }
+    expect(buildQueue([deck], save, NOW, 100).map(key)).toEqual(['fork:picture-to-word'])
+    // Both were learned days ago (that's in the log).
+    for (const template of ['picture-to-word', 'dutch-to-english'])
+      save.log.push({
+        t: NOW - 5 * DAY,
+        deck: deck.id,
+        card: 'fork',
+        template,
+        mode: 'learn',
+        method: 'type',
+        correct: true,
+        hints: 0,
+        ms: 1,
+      })
+    // After reviewing it today, the other one waits for tomorrow…
+    save.log.push({
+      t: NOW - 60_000,
+      deck: deck.id,
+      card: 'fork',
+      template: 'picture-to-word',
+      mode: 'learn',
+      method: 'type',
+      correct: true,
+      hints: 0,
+      ms: 1,
+    })
+    save.decks[deck.id].items.fork['picture-to-word'] = {
+      ...r,
+      due: NOW + 5 * DAY,
+      last_review: NOW - 60_000,
+    }
+    expect(buildQueue([deck], save, NOW, 100)).toEqual([])
+    // …and comes tomorrow.
+    expect(buildQueue([deck], save, NOW + DAY, 100).map(key)).toEqual(['fork:dutch-to-english'])
+  })
+
+  it('always asks learning steps', () => {
+    const save = emptySave('p')
+    save.settings.newPerDay = 0
+    const learning = { ...grade(undefined, 1, NOW - 20 * 60_000), due: NOW - 60_000 }
+    save.decks[deck.id] = {
+      updatedAt: 0,
+      items: { fork: { 'picture-to-word': learning, 'dutch-to-english': learning } },
+    }
+    expect(buildQueue([deck], save, NOW, 100).map(key).sort()).toEqual([
+      'fork:dutch-to-english',
+      'fork:picture-to-word',
+    ])
+  })
+
+  it('spread keeps the order when nothing is too close', () => {
+    const q = buildQueue([deck], emptySave('p'), NOW, 100)
+    expect(spread(q)).toEqual(q)
+    const a = { deck, card: deck.cards[0], template: deck.templates[0] }
+    const b = { ...a, template: deck.templates[1] }
+    const others = deck.cards
+      .slice(1, 5)
+      .map((card) => ({ deck, card, template: deck.templates[0] }))
+    expect(spread([a, b, ...others]).map(key)).toEqual([a, ...others, b].map(key))
+  })
+
+  it('a question that comes back is not put next to its sibling', () => {
+    const items = deck.cards
+      .slice(0, 5)
+      .map((card) => ({ deck, card, template: deck.templates[0] }))
+    // fork's other template is fourth: coming back three on would be right next to it.
+    items.splice(3, 0, { deck, card: deck.cards[0], template: deck.templates[1] })
+    const s = new Session(items)
+    s.next(grade(undefined, 1, NOW), NOW)
+    const forks = s.queue.map((q, i) => (q.card.id === 'fork' ? i : -1)).filter((i) => i >= 0)
+    expect(forks).toHaveLength(2)
+    expect(Math.abs(forks[1] - forks[0])).toBeGreaterThan(2)
   })
 })

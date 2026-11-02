@@ -24,6 +24,10 @@ sync and merge, FSRS scheduler, sprint and race, i18n, audio engine, charts).
 > - **Sound effects** are synthesised in the browser (no sound files to license).
 > - **Not built (yet):** distractors from other decks of the same collection (decks have enough
 >   cards), letter tiles (for Olivier, later), and example sentences.
+> - **Questions about the same word are spread out** (2 November): a new word starts with two
+>   templates, only one due review per word per day is asked (the others wait a day, like Anki's
+>   "bury siblings"), templates switched on later start for a word once per day, and two questions
+>   about the same word are at least four questions apart in a session.
 > - **Tests:** 39 unit tests and 13 end-to-end tests, each on laptop, iPhone and iPad sizes.
 
 Each decision lists a **default** (what I'll build unless you say otherwise) and the

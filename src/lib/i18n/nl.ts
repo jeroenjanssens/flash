@@ -70,7 +70,8 @@ export const nl = {
   'test.clear': 'Weghalen',
 
   'templates.title': 'Wat ga je leren?',
-  'templates.text': 'Elke manier van vragen heeft een eigen planning. Zet aan wat je wilt leren.',
+  'templates.text':
+    'Elke manier van vragen heeft een eigen planning. Zet aan wat je wilt leren: een nieuwe manier komt er per woord één dag tegelijk bij, en een woord wordt maar op één manier per dag gevraagd.',
   'templates.cards': '{count|1 kaart|{count} kaarten}',
   'templates.reset': 'Terug naar standaard',
 

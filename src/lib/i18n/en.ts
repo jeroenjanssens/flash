@@ -69,7 +69,7 @@ export const en = {
 
   'templates.title': 'What do you learn?',
   'templates.text':
-    'Each way of asking has its own schedule. Switch on the ones you want to learn.',
+    'Each way of asking has its own schedule. Switch on the ones you want to learn: a new way is added to each word one day at a time, and a word is asked one way per day.',
   'templates.cards': '{count|1 card|{count} cards}',
   'templates.reset': 'Back to the default',
 

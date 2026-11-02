@@ -38,6 +38,91 @@ export function newCardsToday(save: ProfileSave, deckId: string, now: number): n
   return cards.size
 }
 
+/** On the first day, a new card is asked with at most this many templates. */
+export const FIRST_DAY_TEMPLATES = 2
+/** Questions about other cards between two questions about the same card, where possible. */
+export const SIBLING_GAP = 4
+
+const cardKey = (item: { deck: Deck; card: Card }) => `${item.deck.id}/${item.card.id}`
+
+/** What was asked today in Learn, per card: a review of a template seen before, or a new template. */
+function today(save: ProfileSave, deckId: string, now: number) {
+  const day = dayKey(now)
+  const before = new Set<string>()
+  const seenToday = new Map<string, Set<string>>()
+  for (const e of save.log) {
+    if (e.deck !== deckId || e.mode !== 'learn') continue
+    const key = `${e.card}/${e.template}`
+    if (dayKey(e.t) === day) {
+      if (!seenToday.has(e.card)) seenToday.set(e.card, new Set())
+      seenToday.get(e.card)!.add(e.template)
+    } else before.add(key)
+  }
+  return {
+    /** A template of the card that had been seen before was reviewed today. */
+    reviewed: (card: string) =>
+      [...(seenToday.get(card) ?? [])].some((tpl) => before.has(`${card}/${tpl}`)),
+    /** A template of the card was asked for the first time today. */
+    started: (card: string) =>
+      [...(seenToday.get(card) ?? [])].some((tpl) => !before.has(`${card}/${tpl}`)),
+  }
+}
+
+interface Selection {
+  /** Questions about cards that were studied before, with when they were due. */
+  due: { item: SessionItem; due: number }[]
+  /** New cards (up to today's limit), each with the templates for its first day. */
+  fresh: SessionItem[][]
+  /** Cards that were never studied. */
+  unseen: number
+}
+
+/**
+ * What to study in a deck now. Questions about the same card are spread out over days, because
+ * answering a card one way right after another way tests nothing (the answer was just shown)
+ * and would make the scheduler think it's known better than it is:
+ * - a new card starts with its first `FIRST_DAY_TEMPLATES` templates;
+ * - a card's learning steps (after a first or a wrong answer) are always asked;
+ * - of a card's reviews that are due, only one per day is asked (the most overdue): the others
+ *   wait until the next day ("burying siblings", as in Anki);
+ * - a template that was switched on later starts for one card at most once per day.
+ */
+function select(deck: Deck, save: ProfileSave, now: number): Selection {
+  const progress = save.decks[deck.id]
+  const templates = activeTemplates(deck, progress?.templates)
+  const asked = today(save, deck.id, now)
+  let newLeft = Math.max(0, save.settings.newPerDay - newCardsToday(save, deck.id, now))
+  const out: Selection = { due: [], fresh: [], unseen: 0 }
+  for (const card of deck.cards) {
+    const usable = templates.filter((t) => applies(t, card))
+    if (!usable.length) continue
+    if (isNewCard(progress, card)) {
+      out.unseen++
+      if (newLeft-- > 0)
+        out.fresh.push(
+          usable
+            .slice(0, FIRST_DAY_TEMPLATES)
+            .map((template, i) => ({ deck, card, template, intro: i === 0 })),
+        )
+      continue
+    }
+    let review: { item: SessionItem; due: number } | undefined
+    let start: SessionItem | undefined
+    for (const template of usable) {
+      const r = recordOf(progress, card.id, template.id)
+      const item = { deck, card, template }
+      if (!r || r.state === 0) start ??= item
+      else if (r.due > now) continue
+      else if (r.state === 1 || r.state === 3) out.due.push({ item, due: r.due })
+      else if (!review || r.due < review.due) review = { item, due: r.due }
+    }
+    if (review && !asked.reviewed(card.id)) out.due.push(review)
+    // A template that was never asked comes after the reviews.
+    if (start && !asked.started(card.id)) out.due.push({ item: start, due: now })
+  }
+  return out
+}
+
 export interface DeckCounts {
   due: number
   /** New cards that can still be introduced today. */
@@ -47,30 +132,34 @@ export interface DeckCounts {
 }
 
 export function deckCounts(deck: Deck, save: ProfileSave, now: number): DeckCounts {
-  const progress = save.decks[deck.id]
-  const templates = activeTemplates(deck, progress?.templates)
-  let due = 0
-  let unseen = 0
-  for (const card of deck.cards) {
-    if (card.suspended) continue
-    if (isNewCard(progress, card)) {
-      if (templates.some((t) => applies(t, card))) unseen++
-      continue
-    }
-    for (const t of templates) {
-      if (!applies(t, card)) continue
-      const r = recordOf(progress, card.id, t.id)
-      // A template switched on later counts as due, so the card gets asked that way too.
-      if (!r || r.state === 0 || r.due <= now) due++
-    }
-  }
-  const left = Math.max(0, save.settings.newPerDay - newCardsToday(save, deck.id, now))
-  return { due, newCards: Math.min(left, unseen), unseen }
+  const { due, fresh, unseen } = select(deck, save, now)
+  return { due: due.length, newCards: fresh.length, unseen }
 }
 
 /**
- * The questions for a Learn session: due items first (most overdue first), then new cards in
- * deck order (each introduced once, then asked with every active template), up to `size`.
+ * Reorder questions so that two questions about the same card are at least `gap` questions
+ * apart where possible, keeping the order otherwise (the first question that may go next goes).
+ */
+export function spread(items: SessionItem[], gap = SIBLING_GAP): SessionItem[] {
+  const pending = [...items]
+  const out: SessionItem[] = []
+  while (pending.length) {
+    const recent = new Set(out.slice(-gap).map(cardKey))
+    let i = pending.findIndex((item) => !recent.has(cardKey(item)))
+    // Nothing fits (only one card left, say): take the one whose card was asked longest ago.
+    if (i < 0) {
+      const last = (item: SessionItem) => out.map(cardKey).lastIndexOf(cardKey(item))
+      i = pending.reduce((best, item, j) => (last(item) < last(pending[best]) ? j : best), 0)
+    }
+    out.push(...pending.splice(i, 1))
+  }
+  return out
+}
+
+/**
+ * The questions for a Learn session: due questions first (most overdue first), then new cards
+ * in deck order (each introduced, then asked with its first-day templates), spread out so the
+ * same card isn't asked twice close together, up to `size`.
  */
 export function buildQueue(
   decks: Deck[],
@@ -81,31 +170,16 @@ export function buildQueue(
   const due: { item: SessionItem; due: number }[] = []
   const fresh: SessionItem[][] = []
   for (const deck of decks) {
-    const progress = save.decks[deck.id]
-    const templates = activeTemplates(deck, progress?.templates)
-    let newLeft = Math.max(0, save.settings.newPerDay - newCardsToday(save, deck.id, now))
-    for (const card of deck.cards) {
-      const usable = templates.filter((t) => applies(t, card))
-      if (!usable.length) continue
-      if (isNewCard(progress, card)) {
-        if (newLeft-- > 0)
-          fresh.push(usable.map((template, i) => ({ deck, card, template, intro: i === 0 })))
-        continue
-      }
-      for (const template of usable) {
-        const r = recordOf(progress, card.id, template.id)
-        if (!r || r.state === 0) due.push({ item: { deck, card, template }, due: 0 })
-        else if (r.due <= now) due.push({ item: { deck, card, template }, due: r.due })
-      }
-    }
+    const s = select(deck, save, now)
+    due.push(...s.due)
+    fresh.push(...s.fresh)
   }
   due.sort((a, b) => a.due - b.due)
   const queue = due.map((d) => d.item)
-  // New cards: first every new card's first template, then the second templates, … so the same
-  // card isn't asked twice in a row.
+  // New cards: first every new card's first template, then the second templates.
   const rounds = Math.max(0, ...fresh.map((f) => f.length))
   for (let r = 0; r < rounds; r++) for (const f of fresh) if (f[r]) queue.push(f[r])
-  return queue.slice(0, size)
+  return spread(queue).slice(0, size)
 }
 
 /** How the answer is given in Learn, for a learner's answer style. */
@@ -182,6 +256,18 @@ export class Session {
     const started = new Set([...this.repeats.keys()].filter((k) => !this.finished.has(k))).size
     return (this.finished.size + started * 0.5) / this.total
   }
+  /**
+   * Where to put a question that comes back: `gap` questions on, or later if that would put it
+   * close to another question about the same card.
+   */
+  private slot(item: SessionItem, gap: number): number {
+    const key = cardKey(item)
+    const near = (i: number) =>
+      this.queue.slice(Math.max(0, i - 2), i + 2).some((q) => cardKey(q) === key)
+    for (let i = Math.min(gap, this.queue.length); i <= this.queue.length; i++)
+      if (!near(i)) return i
+    return this.queue.length
+  }
   /** Move on after answering the current item. */
   next(record: ItemRecord | undefined, now: number): void {
     const item = this.queue.shift()
@@ -192,7 +278,7 @@ export class Session {
     if (record && record.due - now < 20 * MINUTE && count < 3) {
       this.repeats.set(key, count + 1)
       const gap = record.due - now < 2 * MINUTE ? 3 : 6
-      this.queue.splice(Math.min(gap, this.queue.length), 0, { ...item, intro: false })
+      this.queue.splice(this.slot(item, gap), 0, { ...item, intro: false })
     } else if (!this.queue.some((q) => sessionKey(q) === key)) {
       this.finished.add(key)
     }
