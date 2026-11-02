@@ -22,11 +22,11 @@ pronunciation) and knows which ones you still need to practise.
   with records.
 - **All cards** of a deck with both voices, and **statistics**: what you know, practice per day,
   what's coming up, the hardest words and the most common misspellings.
-- **Pronunciation** in a female and a male American voice (*juf* and *meester*), made with Kokoro.
+- **Pronunciation** in a female and a male American voice (_juf_ and _meester_), made with Kokoro.
 - **Profiles** for every child, with a streak and a daily goal, and a **parent area**.
 - **Sync** between iPad, iPhone and laptop through one secret GitHub gist for the family; a
   second device is set up by scanning a QR code.
-- **Decks** come with the app (*Stepping Stones Jr. Theme 1: My Home* and *Colours*), or from a
+- **Decks** come with the app (_Stepping Stones Jr. Theme 1: My Home_ and _Colours_), or from a
   private **deck library** on GitHub, or a zip. See [docs/deck-format.md](docs/deck-format.md).
 - **Works offline** and can be installed as an app.
 
