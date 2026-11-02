@@ -85,23 +85,38 @@ async function loadStored(): Promise<LoadedDeck[]> {
   }
 }
 
+/**
+ * Decks in the order they came (built-in decks as listed in public/decks/index.json, then the
+ * others), with decks of the same collection together and in their collection's order.
+ */
 function sortDecks(list: LoadedDeck[]): LoadedDeck[] {
-  return [...list].sort((a, b) => {
-    const ca = a.deck.collection
-    const cb = b.deck.collection
-    if (ca?.id !== cb?.id) return (ca?.id ?? '~').localeCompare(cb?.id ?? '~')
-    return (
-      (ca?.position ?? 0) - (cb?.position ?? 0) ||
-      (a.deck.title.en ?? '').localeCompare(b.deck.title.en ?? '')
-    )
+  const groupOrder = new Map<string, number>()
+  list.forEach((d, i) => {
+    const key = d.deck.collection?.id ?? `deck:${d.deck.id}`
+    if (!groupOrder.has(key)) groupOrder.set(key, i)
   })
+  const group = (d: LoadedDeck) => groupOrder.get(d.deck.collection?.id ?? `deck:${d.deck.id}`)!
+  return list
+    .map((d, i) => ({ d, i }))
+    .sort(
+      (a, b) =>
+        group(a.d) - group(b.d) ||
+        (a.d.deck.collection?.position ?? 0) - (b.d.deck.collection?.position ?? 0) ||
+        a.i - b.i,
+    )
+    .map((x) => x.d)
 }
 
 export async function loadDecks(): Promise<void> {
   const [builtin, stored] = await Promise.all([loadBuiltins(), loadStored()])
-  // A stored copy of a deck wins over a built-in one with the same id (it's newer or chosen).
-  const ids = new Set(stored.map((d) => d.deck.id))
-  decks.list = sortDecks([...stored, ...builtin.filter((d) => !ids.has(d.deck.id))])
+  // The same deck can be built in and stored (imported, or from the library): the newest
+  // revision wins, and the built-in copy on a tie (it's updated with the app).
+  const byId = new Map<string, LoadedDeck>()
+  for (const d of [...builtin, ...stored]) {
+    const other = byId.get(d.deck.id)
+    if (!other || d.deck.revision > other.deck.revision) byId.set(d.deck.id, d)
+  }
+  decks.list = sortDecks([...byId.values()])
   decks.loaded = true
 }
 

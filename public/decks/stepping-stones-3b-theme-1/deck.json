@@ -1,0 +1,1047 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jeroenjanssens/flash/main/schema/deck.schema.json",
+  "format": "flash-deck",
+  "formatVersion": 1,
+  "id": "73b5aac5-585d-4277-9489-c687bb60119b",
+  "revision": 5,
+  "createdAt": "2026-11-01T18:00:00+01:00",
+  "updatedAt": "2026-11-02T09:00:00+01:00",
+  "title": {
+    "en": "Stepping Stones Jr. Theme 1: My Home",
+    "nl": "Stepping Stones Jr. Thema 1: My Home"
+  },
+  "description": {
+    "en": "English words about the kitchen, special homes and castles.",
+    "nl": "Engelse woorden over de keuken, bijzondere huizen en kastelen."
+  },
+  "cover": "media/2-02.webp",
+  "color": "#e8590c",
+  "collection": {
+    "id": "stepping-stones-junior-3b",
+    "title": {
+      "en": "Stepping Stones Junior 3B",
+      "nl": "Stepping Stones Junior 3B"
+    },
+    "position": 1
+  },
+  "language": "en-GB",
+  "tags": [
+    "english",
+    "vocabulary",
+    "stepping-stones-junior"
+  ],
+  "source": {
+    "title": "Stepping Stones Junior – Flash cards – Step 3B – Theme 1 My home",
+    "publisher": "Noordhoff Uitgevers",
+    "copyright": "© Noordhoff Uitgevers bv"
+  },
+  "voices": [
+    {
+      "id": "female",
+      "name": {
+        "en": "Miss",
+        "nl": "Juf"
+      },
+      "gender": "female",
+      "lang": "en-US",
+      "engine": "kokoro",
+      "voice": "af_heart",
+      "credit": "Kokoro-82M by hexgrad",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "male",
+      "name": {
+        "en": "Sir",
+        "nl": "Meester"
+      },
+      "gender": "male",
+      "lang": "en-US",
+      "engine": "kokoro",
+      "voice": "am_michael",
+      "credit": "Kokoro-82M by hexgrad",
+      "license": "Apache-2.0"
+    }
+  ],
+  "fields": [
+    {
+      "id": "image",
+      "type": "image",
+      "name": {
+        "en": "Picture",
+        "nl": "Plaatje"
+      }
+    },
+    {
+      "id": "word",
+      "type": "text",
+      "lang": "en-GB",
+      "speak": true,
+      "name": {
+        "en": "Word",
+        "nl": "Woord"
+      }
+    },
+    {
+      "id": "translation",
+      "type": "text",
+      "lang": "nl",
+      "optional": true,
+      "name": {
+        "en": "Dutch",
+        "nl": "Nederlands"
+      }
+    }
+  ],
+  "templates": [
+    {
+      "id": "picture-to-word",
+      "name": {
+        "en": "Picture → English",
+        "nl": "Plaatje → Engels"
+      },
+      "prompt": [
+        "image"
+      ],
+      "answer": "word",
+      "reveal": [
+        "translation"
+      ],
+      "methods": [
+        "type",
+        "choose",
+        "flip"
+      ]
+    },
+    {
+      "id": "dutch-to-english",
+      "name": {
+        "en": "Dutch → English",
+        "nl": "Nederlands → Engels"
+      },
+      "prompt": [
+        "translation"
+      ],
+      "answer": "word",
+      "reveal": [
+        "image"
+      ],
+      "methods": [
+        "type",
+        "choose",
+        "flip"
+      ]
+    },
+    {
+      "id": "word-to-picture",
+      "name": {
+        "en": "English → picture",
+        "nl": "Engels → plaatje"
+      },
+      "prompt": [
+        "word"
+      ],
+      "answer": "image",
+      "reveal": [
+        "translation"
+      ],
+      "methods": [
+        "choose"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "listen-to-picture",
+      "name": {
+        "en": "Listen → picture",
+        "nl": "Luisteren → plaatje"
+      },
+      "prompt": [
+        {
+          "field": "word",
+          "as": "audio"
+        }
+      ],
+      "answer": "image",
+      "reveal": [
+        "word",
+        "translation"
+      ],
+      "methods": [
+        "choose"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "dictation",
+      "name": {
+        "en": "Listen → spell",
+        "nl": "Luisteren → spellen"
+      },
+      "prompt": [
+        {
+          "field": "word",
+          "as": "audio"
+        }
+      ],
+      "answer": "word",
+      "reveal": [
+        "image",
+        "translation"
+      ],
+      "methods": [
+        "type"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "english-to-dutch",
+      "name": {
+        "en": "English → Dutch",
+        "nl": "Engels → Nederlands"
+      },
+      "prompt": [
+        "word"
+      ],
+      "answer": "translation",
+      "reveal": [
+        "image"
+      ],
+      "methods": [
+        "type",
+        "choose",
+        "flip"
+      ],
+      "enabled": false
+    }
+  ],
+  "cards": [
+    {
+      "id": "bOHzPRLlmt",
+      "ref": "1.1",
+      "fields": {
+        "image": {
+          "src": "media/1-01.webp",
+          "type": "image/webp",
+          "width": 132,
+          "height": 284
+        },
+        "word": {
+          "text": "fridge",
+          "audio": {
+            "female": "media/audio/female/bOHzPRLlmt-word.mp3",
+            "male": "media/audio/male/bOHzPRLlmt-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "koelkast"
+        }
+      },
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "4igtOrBlnk",
+      "ref": "1.2",
+      "fields": {
+        "image": {
+          "src": "media/1-02.webp",
+          "type": "image/webp",
+          "width": 297,
+          "height": 166
+        },
+        "word": {
+          "text": "dish",
+          "audio": {
+            "female": "media/audio/female/4igtOrBlnk-word.mp3",
+            "male": "media/audio/male/4igtOrBlnk-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "gerecht"
+        }
+      },
+      "confusable": [
+        "bj3UHz12L0",
+        "O52XUtwhZb",
+        "kA6m1bR5kR"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "DUsZyoKQVe",
+      "ref": "1.3",
+      "fields": {
+        "image": {
+          "src": "media/1-03.webp",
+          "type": "image/webp",
+          "width": 426,
+          "height": 219
+        },
+        "word": {
+          "text": "recipe",
+          "audio": {
+            "female": "media/audio/female/DUsZyoKQVe-word.mp3",
+            "male": "media/audio/male/DUsZyoKQVe-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "recept"
+        }
+      },
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "bj3UHz12L0",
+      "ref": "1.4",
+      "fields": {
+        "image": {
+          "src": "media/1-04.webp",
+          "type": "image/webp",
+          "width": 421,
+          "height": 211
+        },
+        "word": {
+          "text": "plate",
+          "audio": {
+            "female": "media/audio/female/bj3UHz12L0-word.mp3",
+            "male": "media/audio/male/bj3UHz12L0-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "bord"
+        }
+      },
+      "confusable": [
+        "4igtOrBlnk",
+        "O52XUtwhZb",
+        "kA6m1bR5kR"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "O52XUtwhZb",
+      "ref": "1.5",
+      "fields": {
+        "image": {
+          "src": "media/1-05.webp",
+          "type": "image/webp",
+          "width": 423,
+          "height": 219
+        },
+        "word": {
+          "text": "bowl",
+          "audio": {
+            "female": "media/audio/female/O52XUtwhZb-word.mp3",
+            "male": "media/audio/male/O52XUtwhZb-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "kom"
+        }
+      },
+      "confusable": [
+        "4igtOrBlnk",
+        "bj3UHz12L0",
+        "kA6m1bR5kR"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "kA6m1bR5kR",
+      "ref": "1.6",
+      "fields": {
+        "image": {
+          "src": "media/1-06.webp",
+          "type": "image/webp",
+          "width": 338,
+          "height": 284
+        },
+        "word": {
+          "text": "cup",
+          "audio": {
+            "female": "media/audio/female/kA6m1bR5kR-word.mp3",
+            "male": "media/audio/male/kA6m1bR5kR-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "beker"
+        }
+      },
+      "confusable": [
+        "4igtOrBlnk",
+        "bj3UHz12L0",
+        "O52XUtwhZb"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "9zBDYseHE1",
+      "ref": "1.7",
+      "fields": {
+        "image": {
+          "src": "media/1-07.webp",
+          "type": "image/webp",
+          "width": 391,
+          "height": 205
+        },
+        "word": {
+          "text": "knife",
+          "audio": {
+            "female": "media/audio/female/9zBDYseHE1-word.mp3",
+            "male": "media/audio/male/9zBDYseHE1-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "mes"
+        }
+      },
+      "confusable": [
+        "sotSxXw1e0",
+        "yLkJjK7q0C",
+        "Y02Ym32lSw"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "sotSxXw1e0",
+      "ref": "1.8",
+      "fields": {
+        "image": {
+          "src": "media/1-08.webp",
+          "type": "image/webp",
+          "width": 354,
+          "height": 255
+        },
+        "word": {
+          "text": "fork",
+          "audio": {
+            "female": "media/audio/female/sotSxXw1e0-word.mp3",
+            "male": "media/audio/male/sotSxXw1e0-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "vork"
+        }
+      },
+      "confusable": [
+        "9zBDYseHE1",
+        "yLkJjK7q0C",
+        "Y02Ym32lSw"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "yLkJjK7q0C",
+      "ref": "1.9",
+      "fields": {
+        "image": {
+          "src": "media/1-09.webp",
+          "type": "image/webp",
+          "width": 193,
+          "height": 282
+        },
+        "word": {
+          "text": "spoon",
+          "audio": {
+            "female": "media/audio/female/yLkJjK7q0C-word.mp3",
+            "male": "media/audio/male/yLkJjK7q0C-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "lepel"
+        }
+      },
+      "confusable": [
+        "9zBDYseHE1",
+        "sotSxXw1e0",
+        "Y02Ym32lSw"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "Y02Ym32lSw",
+      "ref": "1.10",
+      "fields": {
+        "image": {
+          "src": "media/1-10.webp",
+          "type": "image/webp",
+          "width": 424,
+          "height": 198
+        },
+        "word": {
+          "text": "chopsticks",
+          "audio": {
+            "female": "media/audio/female/Y02Ym32lSw-word.mp3",
+            "male": "media/audio/male/Y02Ym32lSw-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "eetstokjes"
+        }
+      },
+      "confusable": [
+        "9zBDYseHE1",
+        "sotSxXw1e0",
+        "yLkJjK7q0C"
+      ],
+      "tags": [
+        "kitchen"
+      ]
+    },
+    {
+      "id": "38al4seFn0",
+      "ref": "2.1",
+      "fields": {
+        "image": {
+          "src": "media/2-01.webp",
+          "type": "image/webp",
+          "width": 432,
+          "height": 291
+        },
+        "word": {
+          "text": "special",
+          "audio": {
+            "female": "media/audio/female/38al4seFn0-word.mp3",
+            "male": "media/audio/male/38al4seFn0-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "bijzonder"
+        }
+      },
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "i8ABoWAsj2",
+      "ref": "2.2",
+      "fields": {
+        "image": {
+          "src": "media/2-02.webp",
+          "type": "image/webp",
+          "width": 427,
+          "height": 290
+        },
+        "word": {
+          "text": "houseboat",
+          "audio": {
+            "female": "media/audio/female/i8ABoWAsj2-word.mp3",
+            "male": "media/audio/male/i8ABoWAsj2-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "woonboot"
+        }
+      },
+      "confusable": [
+        "DHuUwVzTEH",
+        "JX8Yj64DaY"
+      ],
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "7BZz4iIJg9",
+      "ref": "2.3",
+      "fields": {
+        "image": {
+          "src": "media/2-03.webp",
+          "type": "image/webp",
+          "width": 414,
+          "height": 223
+        },
+        "word": {
+          "text": "insulation",
+          "audio": {
+            "female": "media/audio/female/7BZz4iIJg9-word.mp3",
+            "male": "media/audio/male/7BZz4iIJg9-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "isolatie"
+        }
+      },
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "3mbtIkk9gW",
+      "ref": "2.4",
+      "fields": {
+        "image": {
+          "src": "media/2-04.webp",
+          "type": "image/webp",
+          "width": 381,
+          "height": 287
+        },
+        "word": {
+          "text": "steel",
+          "audio": {
+            "female": "media/audio/female/3mbtIkk9gW-word.mp3",
+            "male": "media/audio/male/3mbtIkk9gW-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "staal"
+        }
+      },
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "yJdk0sdA8j",
+      "ref": "2.5",
+      "fields": {
+        "image": {
+          "src": "media/2-05.webp",
+          "type": "image/webp",
+          "width": 431,
+          "height": 289
+        },
+        "word": {
+          "text": "float",
+          "audio": {
+            "female": "media/audio/female/yJdk0sdA8j-word.mp3",
+            "male": "media/audio/male/yJdk0sdA8j-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "drijven"
+        }
+      },
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "UM4oWbCwat",
+      "ref": "2.6",
+      "fields": {
+        "image": {
+          "src": "media/2-06.webp",
+          "type": "image/webp",
+          "width": 291,
+          "height": 284
+        },
+        "word": {
+          "text": "eco-house",
+          "accept": [
+            "eco house",
+            "ecohouse"
+          ],
+          "audio": {
+            "female": "media/audio/female/UM4oWbCwat-word.mp3",
+            "male": "media/audio/male/UM4oWbCwat-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "ecohuis"
+        }
+      },
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "yYm9e9JqMI",
+      "ref": "2.7",
+      "fields": {
+        "image": {
+          "src": "media/2-07.webp",
+          "type": "image/webp",
+          "width": 430,
+          "height": 284
+        },
+        "word": {
+          "text": "move",
+          "audio": {
+            "female": "media/audio/female/yYm9e9JqMI-word.mp3",
+            "male": "media/audio/male/yYm9e9JqMI-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "verplaatsen"
+        }
+      },
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "p2PIrlJZ5A",
+      "ref": "2.8",
+      "fields": {
+        "image": {
+          "src": "media/2-08.webp",
+          "type": "image/webp",
+          "width": 428,
+          "height": 285
+        },
+        "word": {
+          "text": "pass",
+          "audio": {
+            "female": "media/audio/female/p2PIrlJZ5A-word.mp3",
+            "male": "media/audio/male/p2PIrlJZ5A-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "inhalen"
+        }
+      },
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "DHuUwVzTEH",
+      "ref": "2.9",
+      "fields": {
+        "image": {
+          "src": "media/2-09.webp",
+          "type": "image/webp",
+          "width": 415,
+          "height": 183
+        },
+        "word": {
+          "text": "ship",
+          "audio": {
+            "female": "media/audio/female/DHuUwVzTEH-word.mp3",
+            "male": "media/audio/male/DHuUwVzTEH-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "schip"
+        }
+      },
+      "confusable": [
+        "i8ABoWAsj2",
+        "JX8Yj64DaY"
+      ],
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "JX8Yj64DaY",
+      "ref": "2.10",
+      "fields": {
+        "image": {
+          "src": "media/2-10.webp",
+          "type": "image/webp",
+          "width": 427,
+          "height": 249
+        },
+        "word": {
+          "text": "deck",
+          "audio": {
+            "female": "media/audio/female/JX8Yj64DaY-word.mp3",
+            "male": "media/audio/male/JX8Yj64DaY-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "dek"
+        }
+      },
+      "confusable": [
+        "i8ABoWAsj2",
+        "DHuUwVzTEH"
+      ],
+      "tags": [
+        "special-homes"
+      ]
+    },
+    {
+      "id": "Nv9BHCyIsi",
+      "ref": "3.1",
+      "fields": {
+        "image": {
+          "src": "media/3-01.webp",
+          "type": "image/webp",
+          "width": 328,
+          "height": 275
+        },
+        "word": {
+          "text": "castle",
+          "audio": {
+            "female": "media/audio/female/Nv9BHCyIsi-word.mp3",
+            "male": "media/audio/male/Nv9BHCyIsi-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "kasteel"
+        }
+      },
+      "confusable": [
+        "lXSzATnL1F"
+      ],
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "WJT0BPK4iD",
+      "ref": "3.2",
+      "fields": {
+        "image": {
+          "src": "media/3-02.webp",
+          "type": "image/webp",
+          "width": 428,
+          "height": 288
+        },
+        "word": {
+          "text": "moat",
+          "audio": {
+            "female": "media/audio/female/WJT0BPK4iD-word.mp3",
+            "male": "media/audio/male/WJT0BPK4iD-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "slotgracht"
+        }
+      },
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "lXSzATnL1F",
+      "ref": "3.3",
+      "fields": {
+        "image": {
+          "src": "media/3-03.webp",
+          "type": "image/webp",
+          "width": 87,
+          "height": 284
+        },
+        "word": {
+          "text": "tower",
+          "audio": {
+            "female": "media/audio/female/lXSzATnL1F-word.mp3",
+            "male": "media/audio/male/lXSzATnL1F-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "toren"
+        }
+      },
+      "confusable": [
+        "Nv9BHCyIsi"
+      ],
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "WVzrqtlmht",
+      "ref": "3.4",
+      "fields": {
+        "image": {
+          "src": "media/3-04.webp",
+          "type": "image/webp",
+          "width": 363,
+          "height": 275
+        },
+        "word": {
+          "text": "in the past",
+          "audio": {
+            "female": "media/audio/female/WVzrqtlmht-word.mp3",
+            "male": "media/audio/male/WVzrqtlmht-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "vroeger"
+        }
+      },
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "IyzmhrbEqf",
+      "ref": "3.5",
+      "fields": {
+        "image": {
+          "src": "media/3-05.webp",
+          "type": "image/webp",
+          "width": 181,
+          "height": 282
+        },
+        "word": {
+          "text": "queen",
+          "audio": {
+            "female": "media/audio/female/IyzmhrbEqf-word.mp3",
+            "male": "media/audio/male/IyzmhrbEqf-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "koningin"
+        }
+      },
+      "confusable": [
+        "EJzPgWJ5E0"
+      ],
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "EJzPgWJ5E0",
+      "ref": "3.6",
+      "fields": {
+        "image": {
+          "src": "media/3-06.webp",
+          "type": "image/webp",
+          "width": 174,
+          "height": 286
+        },
+        "word": {
+          "text": "king",
+          "audio": {
+            "female": "media/audio/female/EJzPgWJ5E0-word.mp3",
+            "male": "media/audio/male/EJzPgWJ5E0-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "koning"
+        }
+      },
+      "confusable": [
+        "IyzmhrbEqf"
+      ],
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "yHkBqDrCFV",
+      "ref": "3.7",
+      "fields": {
+        "image": {
+          "src": "media/3-07.webp",
+          "type": "image/webp",
+          "width": 428,
+          "height": 285
+        },
+        "word": {
+          "text": "knights",
+          "audio": {
+            "female": "media/audio/female/yHkBqDrCFV-word.mp3",
+            "male": "media/audio/male/yHkBqDrCFV-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "ridders"
+        }
+      },
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "xF33EHZlBN",
+      "ref": "3.8",
+      "fields": {
+        "image": {
+          "src": "media/3-08.webp",
+          "type": "image/webp",
+          "width": 427,
+          "height": 286
+        },
+        "word": {
+          "text": "draw bridge",
+          "accept": [
+            "drawbridge"
+          ],
+          "audio": {
+            "female": "media/audio/female/xF33EHZlBN-word.mp3",
+            "male": "media/audio/male/xF33EHZlBN-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "ophaalbrug"
+        }
+      },
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "lBpSYvxTHl",
+      "ref": "3.9",
+      "fields": {
+        "image": {
+          "src": "media/3-09.webp",
+          "type": "image/webp",
+          "width": 135,
+          "height": 274
+        },
+        "word": {
+          "text": "prisoner",
+          "audio": {
+            "female": "media/audio/female/lBpSYvxTHl-word.mp3",
+            "male": "media/audio/male/lBpSYvxTHl-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "gevangene"
+        }
+      },
+      "confusable": [
+        "eGL20FATrg"
+      ],
+      "tags": [
+        "castles"
+      ]
+    },
+    {
+      "id": "eGL20FATrg",
+      "ref": "3.10",
+      "fields": {
+        "image": {
+          "src": "media/3-10.webp",
+          "type": "image/webp",
+          "width": 428,
+          "height": 288
+        },
+        "word": {
+          "text": "dungeon",
+          "audio": {
+            "female": "media/audio/female/eGL20FATrg-word.mp3",
+            "male": "media/audio/male/eGL20FATrg-word.mp3"
+          }
+        },
+        "translation": {
+          "text": "kerker"
+        }
+      },
+      "confusable": [
+        "lBpSYvxTHl"
+      ],
+      "tags": [
+        "castles"
+      ]
+    }
+  ]
+}

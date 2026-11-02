@@ -56,22 +56,23 @@ async function finishSession(page: Page) {
 
 test('a first visit creates a profile and shows the decks', async ({ page }) => {
   await createProfile(page)
-  await expect(page.getByText('Er wachten 10 kaarten op je.')).toBeVisible()
+  await expect(page.getByText('Er wachten 20 kaarten op je.')).toBeVisible()
+  await expect(page.getByRole('link', { name: /Stepping Stones Jr\. Thema 1/ })).toBeVisible()
   await expect(page.getByRole('link', { name: /Kleuren/ })).toBeVisible()
 })
 
 test('a Learn session introduces new words and ends with a summary', async ({ page }) => {
   await createProfile(page)
-  await page.getByRole('link', { name: /Start met leren/ }).click()
+  await page.goto(`/#/deck/${deck.id}/learn`)
   await expect(page.getByText('Nieuw woord')).toBeVisible()
   await finishSession(page)
   await expect(page.getByRole('heading', { name: 'Perfect!' })).toBeVisible()
   await page.getByRole('link', { name: 'Klaar' }).click()
-  // Practice counts for the daily goal and the streak.
-  await expect(page.locator('.streak strong')).toHaveText('1')
-  await page.getByRole('link', { name: /Kleuren/ }).click()
-  // The 10 new cards of today are done; 1 is left for tomorrow.
+  // Back on the deck: the 10 new cards of today are done; 1 is left for tomorrow.
   await expect(page.getByText('Klaar voor vandaag!')).toBeVisible()
+  // Practice counts for the daily goal and the streak.
+  await page.goto('/')
+  await expect(page.locator('.streak strong')).toHaveText('1')
 })
 
 test('typing practice accepts the right word and explains a near miss', async ({ page }) => {
@@ -152,8 +153,8 @@ test('the cards page shows every card with both voices', async ({ page }) => {
   await page.getByPlaceholder('Zoeken').fill('rood')
   await expect(page.locator('.grid .card')).toHaveCount(1)
   await page.locator('.grid .card').click()
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Heart' })).toBeVisible()
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Michael' })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Juf' })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Meester' })).toBeVisible()
 })
 
 test('deck settings switch templates and set a test date', async ({ page }) => {
@@ -168,7 +169,7 @@ test('deck settings switch templates and set a test date', async ({ page }) => {
 
 test('statistics show after practising', async ({ page }) => {
   await createProfile(page)
-  await page.getByRole('link', { name: /Start met leren/ }).click()
+  await page.goto(`/#/deck/${deck.id}/learn`)
   await finishSession(page)
   await page.goto(`/#/deck/${deck.id}/stats`)
   await expect(
@@ -179,13 +180,9 @@ test('statistics show after practising', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Moeilijkste woorden' })).toBeVisible()
 })
 
-test('the parent area is behind a sum and can add a learner', async ({ page }) => {
+test('the parent area opens straight away and can add a learner', async ({ page }) => {
   await createProfile(page)
   await page.goto('/#/parent')
-  const sum = (await page.locator('.q').textContent())!
-  const [a, b] = sum.match(/\d+/g)!.map(Number)
-  await page.getByLabel('Antwoord').fill(String(a * b))
-  await page.getByRole('button', { name: 'Openen' }).click()
   await expect(page.getByRole('heading', { name: 'Hoe gaat het?' })).toBeVisible()
   await page.getByRole('button', { name: 'Iemand toevoegen' }).click()
   await page.getByLabel('Naam').fill('Olivier')
@@ -206,7 +203,7 @@ test('the interface can switch to English', async ({ page }) => {
 
 test('undo takes back the last answer in Learn', async ({ page }) => {
   await createProfile(page)
-  await page.getByRole('link', { name: /Start met leren/ }).click()
+  await page.goto(`/#/deck/${deck.id}/learn`)
   await page.getByRole('button', { name: /Begrepen/ }).click()
   await expect(page.locator('.session .right')).toContainText('20')
   await answer(page, false)
@@ -224,7 +221,7 @@ test('undo takes back the last answer in Learn', async ({ page }) => {
 
 test('the Learn counter and progress bar move on', async ({ page }) => {
   await createProfile(page)
-  await page.getByRole('link', { name: /Start met leren/ }).click()
+  await page.goto(`/#/deck/${deck.id}/learn`)
   const bar = page.getByRole('progressbar')
   await expect(page.locator('.session .right')).toContainText('20')
   await expect(bar).toHaveAttribute('aria-valuenow', '0')
@@ -278,4 +275,23 @@ test('the options stay in place after a wrong answer', async ({ page }) => {
   expect(await options.evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')))).toEqual(
     before,
   )
+})
+
+test('My Home is built in, with its pictures and both voices', async ({ page }) => {
+  await createProfile(page)
+  await page.getByRole('link', { name: /Stepping Stones Jr\. Thema 1: My Home/ }).click()
+  await expect(
+    page.getByRole('heading', { name: 'Stepping Stones Jr. Thema 1: My Home' }),
+  ).toBeVisible()
+  await page.getByRole('link', { name: /30 kaarten/ }).click()
+  await expect(page.locator('.grid .card')).toHaveCount(30)
+  const loaded = await page
+    .locator('.grid .card img')
+    .first()
+    .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)
+  expect(loaded).toBe(true)
+  await page.getByPlaceholder('Zoeken').fill('koelkast')
+  await page.locator('.grid .card').click()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Juf' })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Meester' })).toBeVisible()
 })

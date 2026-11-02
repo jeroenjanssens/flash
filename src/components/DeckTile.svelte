@@ -24,7 +24,6 @@
   </div>
   <div class="body">
     <strong class="name">{loc(deck.title)}</strong>
-    {#if deck.collection}<span class="muted small">{loc(deck.collection.title)}</span>{/if}
     <div class="bar" aria-label={t('deck.progress', { percent: Math.round(progress * 100) })}>
       <div style:width="{progress * 100}%"></div>
     </div>

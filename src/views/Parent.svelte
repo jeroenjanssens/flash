@@ -36,23 +36,6 @@
   } from '../state/sync.svelte'
   import { toast } from '../state/ui.svelte'
 
-  // The gate: a sum that's easy for a parent and annoying for a young child.
-  const a = 6 + Math.floor(Math.random() * 4)
-  const b = 6 + Math.floor(Math.random() * 4)
-  let answer = $state('')
-  let unlocked = $state(sessionStorage.getItem('flash:parent') === '1')
-
-  function unlock(e: Event) {
-    e.preventDefault()
-    if (Number(answer) === a * b) {
-      unlocked = true
-      sessionStorage.setItem('flash:parent', '1')
-    } else {
-      answer = ''
-      toast(t('parent.wrongSum'), 'error')
-    }
-  }
-
   const profiles = $derived(visibleProfiles())
   const saves = $derived(familySaves())
   let editing = $state<string>()
@@ -195,291 +178,257 @@
 
 <main class="page narrow">
   <Header back={href('')} title={t('nav.parent')} />
-  {#if !unlocked}
-    <form class="panel stack gate" onsubmit={unlock}>
-      <Icon name="lock" size={40} />
-      <h2>{t('parent.gate')}</h2>
-      <p class="muted">{t('parent.gateText')}</p>
-      <label class="field sum">
-        <span class="q">{a} × {b} =</span>
-        <input
-          class="input"
-          inputmode="numeric"
-          bind:value={answer}
-          autocomplete="off"
-          aria-label={t('parent.answer')}
-        />
-      </label>
-      <button class="btn primary" type="submit">{t('parent.open')}</button>
-    </form>
-  {:else}
-    <div class="stack">
-      <!-- Overview -->
-      {#if profiles.length}
-        <section class="panel stack">
-          <h2>{t('parent.overview')}</h2>
-          {#each profiles as p (p.id)}
-            {@const s = saves[p.id]}
-            <div class="kid">
-              <span class="avatar" style:background={p.color}>{p.avatar}</span>
-              <div class="kid-info">
-                <strong>{p.name}</strong>
-                {#if s}
-                  <span class="muted small">
-                    🔥 {t('home.streak', { days: streak(s.log, Date.now()) })} · {t('stats.today', {
-                      count: answersToday(s.log, Date.now()),
-                    })}
-                  </span>
-                  {#each decks.list as d (d.deck.id)}
-                    {@const c = cardLevels(d.deck, s)}
-                    {#if c.learning + c.known + c.mastered > 0}
-                      <span class="small"
-                        >{loc(d.deck.title)}: {t('parent.deckLine', {
-                          known: c.known + c.mastered,
-                          total: d.deck.cards.length,
-                          mastered: c.mastered,
-                        })}</span
-                      >
-                    {/if}
-                  {/each}
-                {/if}
-              </div>
-            </div>
-          {/each}
-        </section>
-      {/if}
-
-      <!-- Profiles -->
+  <div class="stack">
+    <!-- Overview -->
+    {#if profiles.length}
       <section class="panel stack">
-        <h2>{t('parent.profiles')}</h2>
+        <h2>{t('parent.overview')}</h2>
         {#each profiles as p (p.id)}
-          {#if editing === p.id}
-            <ProfileForm
-              name={p.name}
-              avatar={p.avatar}
-              color={p.color}
-              submitLabel={t('common.save')}
-              onsubmit={(x) => {
-                updateProfile(p.id, x)
-                editing = undefined
-              }}
-              oncancel={() => (editing = undefined)}
-            />
-          {:else}
-            <div class="spread">
-              <span class="row"
-                ><span class="avatar small" style:background={p.color}>{p.avatar}</span><strong
-                  >{p.name}</strong
-                ></span
-              >
-              <span class="row">
-                <button
-                  class="btn icon ghost"
-                  onclick={() => (editing = p.id)}
-                  aria-label={t('common.edit')}><Icon name="edit" /></button
-                >
-                <button
-                  class="btn icon ghost danger"
-                  onclick={() => remove(p)}
-                  aria-label={t('common.delete')}><Icon name="trash" /></button
-                >
-              </span>
+          {@const s = saves[p.id]}
+          <div class="kid">
+            <span class="avatar" style:background={p.color}>{p.avatar}</span>
+            <div class="kid-info">
+              <strong>{p.name}</strong>
+              {#if s}
+                <span class="muted small">
+                  🔥 {t('home.streak', { days: streak(s.log, Date.now()) })} · {t('stats.today', {
+                    count: answersToday(s.log, Date.now()),
+                  })}
+                </span>
+                {#each decks.list as d (d.deck.id)}
+                  {@const c = cardLevels(d.deck, s)}
+                  {#if c.learning + c.known + c.mastered > 0}
+                    <span class="small"
+                      >{loc(d.deck.title)}: {t('parent.deckLine', {
+                        known: c.known + c.mastered,
+                        total: d.deck.cards.length,
+                        mastered: c.mastered,
+                      })}</span
+                    >
+                  {/if}
+                {/each}
+              {/if}
             </div>
-          {/if}
+          </div>
         {/each}
-        {#if adding}
+      </section>
+    {/if}
+
+    <!-- Profiles -->
+    <section class="panel stack">
+      <h2>{t('parent.profiles')}</h2>
+      {#each profiles as p (p.id)}
+        {#if editing === p.id}
           <ProfileForm
-            submitLabel={t('profiles.add')}
+            name={p.name}
+            avatar={p.avatar}
+            color={p.color}
+            submitLabel={t('common.save')}
             onsubmit={(x) => {
-              // Adding someone doesn't switch away from who's learning.
-              createProfile(x.name, x.avatar, x.color, false)
-              adding = false
+              updateProfile(p.id, x)
+              editing = undefined
             }}
-            oncancel={() => (adding = false)}
+            oncancel={() => (editing = undefined)}
           />
         {:else}
-          <button class="btn" onclick={() => (adding = true)}
-            ><Icon name="plus" />{t('profiles.add')}</button
-          >
-        {/if}
-      </section>
-
-      <!-- Sync -->
-      <section class="panel stack">
-        <h2><Icon name="sync" /> {t('sync.title')}</h2>
-        {#if sync.connected}
-          <p>
-            {t('sync.on')}
-            {#if sync.lastSync}<span class="muted small"
-                >· {t('sync.last', { time: new Date(sync.lastSync).toLocaleString() })}</span
-              >{/if}
-          </p>
-          {#if sync.error}<p class="error">{t(`sync.error.${sync.error}`)}</p>{/if}
-          <div class="row">
-            <button
-              class="btn primary"
-              onclick={async () =>
-                toast((await syncNow()) ? t('sync.done') : t(`sync.error.${sync.error || 'http'}`))}
-              disabled={sync.syncing}
+          <div class="spread">
+            <span class="row"
+              ><span class="avatar small" style:background={p.color}>{p.avatar}</span><strong
+                >{p.name}</strong
+              ></span
             >
-              <Icon name="sync" />{t('sync.now')}
-            </button>
-            <button class="btn" onclick={() => (showPair = !showPair)}
-              ><Icon name="qr" />{t('sync.pair')}</button
-            >
-            <button
-              class="btn ghost danger"
-              onclick={() => confirm(t('sync.confirmOff')) && disconnect()}>{t('sync.off')}</button
-            >
-          </div>
-          {#if link}
-            <div class="pair">
-              <!-- eslint-disable-next-line svelte/no-at-html-tags -- an SVG made by uqr from our own link -->
-              <div class="qr">{@html qr}</div>
-              <div class="stack">
-                <p>{t('sync.pairText')}</p>
-                <button
-                  class="btn"
-                  onclick={async () => {
-                    await navigator.clipboard.writeText(link)
-                    toast(t('sync.copied'))
-                  }}
-                >
-                  <Icon name="link" />{t('sync.copy')}
-                </button>
-                <p class="muted small">{t('sync.pairWarning')}</p>
-              </div>
-            </div>
-          {/if}
-        {:else}
-          <p class="muted">{t('sync.intro')}</p>
-          <ol class="small steps">
-            <!-- eslint-disable-next-line svelte/no-at-html-tags -- our own translation, with a link -->
-            <li>{@html t('sync.step1')}</li>
-            <li>{t('sync.step2')}</li>
-            <li>{t('sync.step3')}</li>
-          </ol>
-          <form class="stack" onsubmit={doConnect}>
-            <label class="field">
-              {t('sync.token')}
-              <input
-                class="input"
-                type="password"
-                bind:value={token}
-                autocomplete="off"
-                placeholder="github_pat_…"
-                required
-              />
-            </label>
-            <label class="field">
-              {t('library.repo')}
-              <input
-                class="input"
-                bind:value={repo}
-                placeholder="owner/flash-decks"
-                autocomplete="off"
-              />
-            </label>
-            <button class="btn primary" type="submit" disabled={busy || !token.trim()}
-              >{t('sync.connect')}</button
-            >
-          </form>
-        {/if}
-      </section>
-
-      <!-- Decks -->
-      <section class="panel stack">
-        <h2><Icon name="cards" /> {t('decks.title')}</h2>
-        {#if sync.connected}
-          <div class="row">
-            <input
-              class="input repo"
-              bind:value={repo}
-              placeholder="owner/flash-decks"
-              aria-label={t('library.repo')}
-            />
-            <button class="btn" onclick={saveRepo} disabled={busy}
-              ><Icon name="download" />{t('library.refresh')}</button
-            >
-          </div>
-        {/if}
-        {#each decks.list as d (d.deck.id)}
-          <div class="spread deck">
-            <div>
-              <strong>{loc(d.deck.title)}</strong>
-              <span class="muted small block">
-                {d.deck.collection ? loc(d.deck.collection.title) + ' · ' : ''}{t(
-                  sourceLabel[d.source],
-                )} · {t('decks.revision', { revision: d.deck.revision })} · {t('deck.cards', {
-                  count: d.deck.cards.length,
-                })}
-              </span>
-            </div>
             <span class="row">
               <button
                 class="btn icon ghost"
-                onclick={() => onExport(d)}
-                aria-label={t('decks.export')}
-                title={t('decks.export')}><Icon name="download" /></button
+                onclick={() => (editing = p.id)}
+                aria-label={t('common.edit')}><Icon name="edit" /></button
               >
-              {#if d.source !== 'builtin'}
-                <button
-                  class="btn icon ghost danger"
-                  onclick={() =>
-                    confirm(t('decks.confirmRemove', { title: loc(d.deck.title) })) &&
-                    removeDeck(d.deck.id)}
-                  aria-label={t('common.delete')}><Icon name="trash" /></button
-                >
-              {/if}
+              <button
+                class="btn icon ghost danger"
+                onclick={() => remove(p)}
+                aria-label={t('common.delete')}><Icon name="trash" /></button
+              >
             </span>
           </div>
-        {/each}
-        <label class="btn">
-          <Icon name="upload" />{t('import.button')}
-          <input class="sr-only" type="file" accept=".zip,application/zip" onchange={onImport} />
-        </label>
-        <p class="muted small">{t('import.text')}</p>
-      </section>
+        {/if}
+      {/each}
+      {#if adding}
+        <ProfileForm
+          submitLabel={t('profiles.add')}
+          onsubmit={(x) => {
+            // Adding someone doesn't switch away from who's learning.
+            createProfile(x.name, x.avatar, x.color, false)
+            adding = false
+          }}
+          oncancel={() => (adding = false)}
+        />
+      {:else}
+        <button class="btn" onclick={() => (adding = true)}
+          ><Icon name="plus" />{t('profiles.add')}</button
+        >
+      {/if}
+    </section>
 
-      <!-- Backup -->
-      <section class="panel stack">
-        <h2>{t('backup.title')}</h2>
-        <p class="muted small">{t('backup.text')}</p>
+    <!-- Sync -->
+    <section class="panel stack">
+      <h2><Icon name="sync" /> {t('sync.title')}</h2>
+      {#if sync.connected}
+        <p>
+          {t('sync.on')}
+          {#if sync.lastSync}<span class="muted small"
+              >· {t('sync.last', { time: new Date(sync.lastSync).toLocaleString() })}</span
+            >{/if}
+        </p>
+        {#if sync.error}<p class="error">{t(`sync.error.${sync.error}`)}</p>{/if}
         <div class="row">
-          <button class="btn" onclick={backup}><Icon name="download" />{t('backup.export')}</button>
-          <label class="btn">
-            <Icon name="upload" />{t('backup.import')}
-            <input class="sr-only" type="file" accept=".json,application/json" onchange={restore} />
-          </label>
+          <button
+            class="btn primary"
+            onclick={async () =>
+              toast((await syncNow()) ? t('sync.done') : t(`sync.error.${sync.error || 'http'}`))}
+            disabled={sync.syncing}
+          >
+            <Icon name="sync" />{t('sync.now')}
+          </button>
+          <button class="btn" onclick={() => (showPair = !showPair)}
+            ><Icon name="qr" />{t('sync.pair')}</button
+          >
+          <button
+            class="btn ghost danger"
+            onclick={() => confirm(t('sync.confirmOff')) && disconnect()}>{t('sync.off')}</button
+          >
         </div>
-      </section>
+        {#if link}
+          <div class="pair">
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -- an SVG made by uqr from our own link -->
+            <div class="qr">{@html qr}</div>
+            <div class="stack">
+              <p>{t('sync.pairText')}</p>
+              <button
+                class="btn"
+                onclick={async () => {
+                  await navigator.clipboard.writeText(link)
+                  toast(t('sync.copied'))
+                }}
+              >
+                <Icon name="link" />{t('sync.copy')}
+              </button>
+              <p class="muted small">{t('sync.pairWarning')}</p>
+            </div>
+          </div>
+        {/if}
+      {:else}
+        <p class="muted">{t('sync.intro')}</p>
+        <ol class="small steps">
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -- our own translation, with a link -->
+          <li>{@html t('sync.step1')}</li>
+          <li>{t('sync.step2')}</li>
+          <li>{t('sync.step3')}</li>
+        </ol>
+        <form class="stack" onsubmit={doConnect}>
+          <label class="field">
+            {t('sync.token')}
+            <input
+              class="input"
+              type="password"
+              bind:value={token}
+              autocomplete="off"
+              placeholder="github_pat_…"
+              required
+            />
+          </label>
+          <label class="field">
+            {t('library.repo')}
+            <input
+              class="input"
+              bind:value={repo}
+              placeholder="owner/flash-decks"
+              autocomplete="off"
+            />
+          </label>
+          <button class="btn primary" type="submit" disabled={busy || !token.trim()}
+            >{t('sync.connect')}</button
+          >
+        </form>
+      {/if}
+    </section>
 
-      <section class="panel stack small muted">
-        <h2>{t('about.title')}</h2>
-        <p>{t('about.version', { version: __APP_VERSION__ })}</p>
-        <p>{t('about.credits')}</p>
-        <p><a href="https://github.com/jeroenjanssens/flash">github.com/jeroenjanssens/flash</a></p>
-      </section>
-    </div>
-  {/if}
+    <!-- Decks -->
+    <section class="panel stack">
+      <h2><Icon name="cards" /> {t('decks.title')}</h2>
+      {#if sync.connected}
+        <div class="row">
+          <input
+            class="input repo"
+            bind:value={repo}
+            placeholder="owner/flash-decks"
+            aria-label={t('library.repo')}
+          />
+          <button class="btn" onclick={saveRepo} disabled={busy}
+            ><Icon name="download" />{t('library.refresh')}</button
+          >
+        </div>
+      {/if}
+      {#each decks.list as d (d.deck.id)}
+        <div class="spread deck">
+          <div>
+            <strong>{loc(d.deck.title)}</strong>
+            <span class="muted small block">
+              {d.deck.collection ? loc(d.deck.collection.title) + ' · ' : ''}{t(
+                sourceLabel[d.source],
+              )} · {t('decks.revision', { revision: d.deck.revision })} · {t('deck.cards', {
+                count: d.deck.cards.length,
+              })}
+            </span>
+          </div>
+          <span class="row">
+            <button
+              class="btn icon ghost"
+              onclick={() => onExport(d)}
+              aria-label={t('decks.export')}
+              title={t('decks.export')}><Icon name="download" /></button
+            >
+            {#if d.source !== 'builtin'}
+              <button
+                class="btn icon ghost danger"
+                onclick={() =>
+                  confirm(t('decks.confirmRemove', { title: loc(d.deck.title) })) &&
+                  removeDeck(d.deck.id)}
+                aria-label={t('common.delete')}><Icon name="trash" /></button
+              >
+            {/if}
+          </span>
+        </div>
+      {/each}
+      <label class="btn">
+        <Icon name="upload" />{t('import.button')}
+        <input class="sr-only" type="file" accept=".zip,application/zip" onchange={onImport} />
+      </label>
+      <p class="muted small">{t('import.text')}</p>
+    </section>
+
+    <!-- Backup -->
+    <section class="panel stack">
+      <h2>{t('backup.title')}</h2>
+      <p class="muted small">{t('backup.text')}</p>
+      <div class="row">
+        <button class="btn" onclick={backup}><Icon name="download" />{t('backup.export')}</button>
+        <label class="btn">
+          <Icon name="upload" />{t('backup.import')}
+          <input class="sr-only" type="file" accept=".json,application/json" onchange={restore} />
+        </label>
+      </div>
+    </section>
+
+    <section class="panel stack small muted">
+      <h2>{t('about.title')}</h2>
+      <p>{t('about.version', { version: __APP_VERSION__ })}</p>
+      <p>{t('about.credits')}</p>
+      <p><a href="https://github.com/jeroenjanssens/flash">github.com/jeroenjanssens/flash</a></p>
+    </section>
+  </div>
 </main>
 
 <style>
-  .gate {
-    justify-items: center;
-    text-align: center;
-  }
-  .sum {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    font-size: 1.4rem;
-  }
-  .sum .input {
-    width: 120px;
-    font-size: 1.4rem;
-    text-align: center;
-  }
   .kid {
     display: flex;
     gap: 14px;

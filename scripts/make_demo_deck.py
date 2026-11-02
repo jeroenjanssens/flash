@@ -71,7 +71,7 @@ def main() -> None:
     deck = {
         "$schema": "https://raw.githubusercontent.com/jeroenjanssens/flash/main/schema/deck.schema.json",
         "format": "flash-deck", "formatVersion": 1,
-        "id": "5f0c8a1e-6f0b-4d55-9a57-2f6d3c0b9e11", "revision": 3,
+        "id": "5f0c8a1e-6f0b-4d55-9a57-2f6d3c0b9e11", "revision": 4,
         "createdAt": "2026-11-02T12:00:00+01:00", "updatedAt": "2026-11-02T12:00:00+01:00",
         "title": L("Colours", "Kleuren"),
         "description": L("Eleven colours in English. A deck to try Flash with.", "Elf kleuren in het Engels. Een stapel om Flash mee uit te proberen."),
@@ -79,8 +79,8 @@ def main() -> None:
         "language": "en-GB", "tags": ["english", "vocabulary", "demo"],
         "source": {"author": "Jeroen Janssens", "license": "CC0-1.0"},
         "voices": [
-            {"id": "female", "name": L("Heart", "Heart"), "gender": "female", "lang": "en-US", "engine": "kokoro", "voice": "af_heart", "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
-            {"id": "male", "name": L("Michael", "Michael"), "gender": "male", "lang": "en-US", "engine": "kokoro", "voice": "am_michael", "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
+            {"id": "female", "name": L("Miss", "Juf"), "gender": "female", "lang": "en-US", "engine": "kokoro", "voice": "af_heart", "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
+            {"id": "male", "name": L("Sir", "Meester"), "gender": "male", "lang": "en-US", "engine": "kokoro", "voice": "am_michael", "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
         ],
         "fields": [
             {"id": "image", "type": "image", "name": L("Picture", "Plaatje")},
@@ -98,7 +98,7 @@ def main() -> None:
         "cards": cards,
     }
     old.write_text(json.dumps(deck, indent=2, ensure_ascii=False) + "\n")
-    (OUT.parent / "index.json").write_text(json.dumps({"decks": ["colours"]}, indent=2) + "\n")
+    
     print(f"wrote {OUT}")
 
 

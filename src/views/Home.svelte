@@ -79,7 +79,7 @@
     <div class="panel empty">
       <h2>{t('home.noDecks')}</h2>
       <p class="muted">{t('home.noDecksText')}</p>
-      <a class="btn" href={href('parent')}><Icon name="lock" />{t('nav.parent')}</a>
+      <a class="btn" href={href('parent')}><Icon name="user" />{t('nav.parent')}</a>
     </div>
   {:else}
     {#each groups as group (group.title)}

@@ -48,9 +48,9 @@ is complete, …). The ideas come from Anki:
   "tags": ["english", "vocabulary"],
   "source": { "title": "…", "publisher": "…", "copyright": "…" },
   "voices": [
-    { "id": "female", "gender": "female", "lang": "en-US", "engine": "kokoro", "voice": "af_heart",
+    { "id": "female", "name": { "en": "Miss", "nl": "Juf" }, "gender": "female", "lang": "en-US", "engine": "kokoro", "voice": "af_heart",
       "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0" },
-    { "id": "male", "gender": "male", "lang": "en-US", "engine": "kokoro", "voice": "am_michael",
+    { "id": "male", "name": { "en": "Sir", "nl": "Meester" }, "gender": "male", "lang": "en-US", "engine": "kokoro", "voice": "am_michael",
       "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0" }
   ],
   "fields": [

@@ -135,10 +135,10 @@ def main() -> None:
         "language": args.language,
         "tags": [learn_name["en"].lower(), "vocabulary"],
         "voices": (old or {}).get("voices") or [
-            {"id": "female", "name": {"en": "Heart", "nl": "Heart"}, "gender": "female", "lang": "en-US",
+            {"id": "female", "name": {"en": "Miss", "nl": "Juf"}, "gender": "female", "lang": "en-US",
              "engine": "kokoro", "voice": "af_heart",
              "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
-            {"id": "male", "name": {"en": "Michael", "nl": "Michael"}, "gender": "male", "lang": "en-US",
+            {"id": "male", "name": {"en": "Sir", "nl": "Meester"}, "gender": "male", "lang": "en-US",
              "engine": "kokoro", "voice": "am_michael",
              "credit": "Kokoro-82M by hexgrad", "license": "Apache-2.0"},
         ],

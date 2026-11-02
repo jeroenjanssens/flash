@@ -4,10 +4,10 @@ This is the recipe for turning school material into a Flash deck. It's written f
 for agents (Claude Code has a skill for it: `.claude/skills/new-deck/`). The format itself is
 described in [deck-format.md](deck-format.md).
 
-**Where decks live.** Decks with copyrighted material (pictures from a school book) go in the
-**private** deck library, `jeroenjanssens/flash-decks`, one folder per deck. Never put them in
-this public repository. Only decks you made yourself, or that are freely licensed, may go in
-`public/decks/` (and in `public/decks/index.json`).
+**Where decks live.** Decks are built into the app: one folder per deck in `public/decks/`,
+listed in `public/decks/index.json` (in the order they're shown). For material that must not be
+public, use the private deck library instead (a separate GitHub repository with the same
+folders, set in *Voor ouders*).
 
 You need [uv](https://docs.astral.sh/uv/), [just](https://github.com/casey/just), poppler
 (`pdfimages`), tesseract, ffmpeg and espeak-ng: `brew install poppler tesseract ffmpeg espeak-ng`.
@@ -42,7 +42,7 @@ it again. Fix OCR mistakes in the next step.
 ## 3. Make the deck
 
 ```sh
-just new-deck /tmp/extracted ../flash-decks/<folder> --title-en "My home" --title-nl "Mijn huis" \
+just new-deck /tmp/extracted public/decks/<folder> --title-en "My home" --title-nl "Mijn huis" \
   --collection-id stepping-stones-junior-3b --collection-title "Stepping Stones Junior 3B" --position 1 \
   --source-title "Stepping Stones Junior – Flash cards – Step 3B – Theme 1 My home" \
   --publisher "Noordhoff Uitgevers" --copyright "© Noordhoff Uitgevers bv"
@@ -77,12 +77,12 @@ Go through every card:
 ## 5. Pronunciation
 
 ```sh
-just audio ../flash-decks/<folder>
+just audio public/decks/<folder>
 ```
 
 Makes an MP3 per word in each voice (`female`: Kokoro `af_heart`, `male`: `am_michael`, both
 American English, chosen by ear) and adds the paths to `deck.json`. It only makes clips whose
-word changed, so it's fast to run again. To compare other voices: `just voices ../flash-decks/<folder>`
+word changed, so it's fast to run again. To compare other voices: `just voices public/decks/<folder>`
 and open `voice-preview/index.html`. Some voices add a short "-eh" after a final consonant
 ("fridge-eh"); `just audio <deck> --method carrier` says each word inside "I said … twice" and
 cuts it out, which avoids that.
@@ -90,8 +90,8 @@ cuts it out, which avoids that.
 ## 6. Check
 
 ```sh
-just check-deck ../flash-decks/<folder>      # schema, files, audio, ids, duplicates
-just preview ../flash-decks/<folder>         # every card, both sides, both voices
+just check-deck public/decks/<folder>      # schema, files, audio, ids, duplicates
+just preview public/decks/<folder>         # every card, both sides, both voices
 ```
 
 `check-deck` must show 0 errors. Warnings about capitals are fine for names. In the preview,
@@ -101,15 +101,9 @@ flag the word for a parent to check.
 
 ## 7. Publish
 
-In the deck library repository:
-
-```sh
-cd ../flash-decks
-git add <folder> && git commit -m "Add Stepping Stones 3B, theme 2" && git push
-```
-
-On the devices, *Voor ouders → Stapels → Stapels ophalen* downloads it (it also happens when
-the app starts). Without the library, export a zip (*Exporteren*) and import it on a device.
+Add the folder to `public/decks/index.json`, run `just e2e`, and commit and push. CI deploys the
+app, and every device picks up the new deck with the next update. (For the private library:
+commit the folder there instead; devices download it when the app starts.)
 
 ## Rules that must never be broken
 
@@ -117,7 +111,8 @@ the app starts). Without the library, export a zip (*Exporteren*) and import it 
    is stored per id.
 2. **Never delete a card that has been studied.** Set `"suspended": true` instead.
 3. **Bump `revision`** (and `updatedAt`) on every change, or devices won't update.
-4. **Never put copyrighted pictures in the public repository.**
+4. **Check where a deck may go.** Public decks are fine for generic pictures; keep material that
+   mustn't be public in the private library.
 5. Text is lowercase unless the word needs a capital, and every text has a language.
 
 ## Other sources

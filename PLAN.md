@@ -16,9 +16,11 @@ sync and merge, FSRS scheduler, sprint and race, i18n, audio engine, charts).
 >   tried before: `bf_emma`, `bf_lily`, `bm_george`, `bm_lewis`. Some voices add an "-eh" after a
 >   final consonant; `--method carrier` cuts the word out of "I said … twice" to avoid it.)
 >   The decks keep British spelling; "gray" etc. are accepted.
-> - **Built-in deck:** a free *Colours* deck (11 cards, pictures drawn as SVG) comes with the
->   app, for trying Flash and for the tests. *My home* lives in the private deck library
->   `jeroenjanssens/flash-decks`.
+> - **Built-in decks:** *Stepping Stones Jr. Theme 1: My Home* (moved out of the private library
+>   into the app on 2 November: the pictures are generic) and *Colours* (11 cards, pictures drawn
+>   as SVG). The private deck library stays available for material that mustn't be public.
+> - **Parent area** without a gate; voices are called *juf* and *meester* (*Miss* and *Sir* in English).
+> - **Logo:** two fanned flashcards on blue, so it doesn't look like kana's.
 > - **Sound effects** are synthesised in the browser (no sound files to license).
 > - **Not built (yet):** distractors from other decks of the same collection (decks have enough
 >   cards), letter tiles (for Olivier, later), and example sentences.

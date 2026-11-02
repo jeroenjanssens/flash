@@ -135,7 +135,7 @@
       </div>
     </section>
 
-    <a class="btn" href={href('parent')}><Icon name="lock" />{t('nav.parent')}</a>
+    <a class="btn" href={href('parent')}><Icon name="user" />{t('nav.parent')}</a>
   </div>
 </main>
 
