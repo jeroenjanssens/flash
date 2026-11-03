@@ -11,7 +11,7 @@
   import { applyAnswer } from '../lib/study/apply'
   import type { Answer } from '../lib/study/grade'
   import { shuffle } from '../lib/study/options'
-  import { cardsInSet, type CardSet } from '../lib/study/sets'
+  import { cardsInSet, defaultSet, type CardSet } from '../lib/study/sets'
   import { audio, save } from '../state/app.svelte'
   import type { LoadedDeck } from '../state/decks.svelte'
   import { t } from '../state/i18n.svelte'
@@ -34,7 +34,7 @@
   )
   const list = (route.query.cards ?? '').split(',').filter(Boolean)
   let template = $state((() => templates[0]?.id ?? '')())
-  let set = $state<CardSet>(list.length ? 'list' : 'all')
+  let set = $state<CardSet>((() => (list.length ? 'list' : defaultSet(deck, s)))())
   const tpl = $derived(deck.templates.find((x) => x.id === template))
   const pool = $derived(tpl ? cardsInSet(deck, tpl, set, s, list) : [])
 
@@ -101,7 +101,7 @@
     <div class="panel stack">
       <p class="muted">{t(`practice.${mode}Text`)}</p>
       {#if templates.length}
-        <SetupPicker {deck} {templates} bind:template bind:set />
+        <SetupPicker {deck} {templates} bind:template bind:set {list} />
         <button class="btn primary big" onclick={start} disabled={!pool.length}>
           <Icon name="play" filled />{t('practice.start', { count: pool.length })}
         </button>
@@ -114,7 +114,9 @@
 {:else if phase === 'run' && tpl}
   <div class="session">
     <SessionBar progress={index / queue.length} onclose={() => (phase = 'setup')}>
-      {#snippet right()}{queue.length - index}{/snippet}
+      {#snippet right()}<span aria-label={t('session.count', { done: index, total: queue.length })}
+          >{index} / {queue.length}</span
+        >{/snippet}
     </SessionBar>
     <main class="stage">
       {#key key}

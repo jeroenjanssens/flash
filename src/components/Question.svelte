@@ -54,6 +54,20 @@
     return ids.find((id) => fieldOf(deck, id)?.speak && textOf(card, id))
   })
 
+  /**
+   * When the answer is a picture: the word to put under the right picture (and the wrongly
+   * chosen one) after answering, so the word and the picture are seen together.
+   */
+  const captionField = $derived.by(() => {
+    if (!pictureAnswer) return undefined
+    const ids = [
+      sayField,
+      ...template.prompt.map(promptField),
+      ...(template.reveal ?? []).map(promptField),
+    ]
+    return ids.find((id) => id && fieldOf(deck, id)?.type === 'text' && textOf(card, id))
+  })
+
   type Phase = 'ask' | 'close' | 'shown' | 'done'
   let phase = $state<Phase>('ask')
   let typed = $state('')
@@ -260,10 +274,13 @@
           disabled={phase === 'done'}
           onclick={() => choose(option)}
         >
-          {#if pictureAnswer}
-            <FieldView {loaded} card={option} field={answerField} size="medium" />
-          {:else}
-            <FieldView {loaded} card={option} field={answerField} size="medium" />
+          <FieldView {loaded} card={option} field={answerField} size="medium" />
+          {#if captionField && phase === 'done' && (option.id === card.id || option.id === chosen)}
+            <span
+              class="caption word"
+              lang={langOf(deck, captionField, textOf(option, captionField))}
+              >{textOf(option, captionField)?.text}</span
+            >
           {/if}
           <kbd>{i + 1}</kbd>
         </button>
@@ -477,6 +494,18 @@
   }
   .option.faded {
     opacity: 0.35;
+  }
+  .caption {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-top: 6px;
+    animation: rise 0.25s ease;
+  }
+  .is-right .caption {
+    color: var(--good);
+  }
+  .is-wrong .caption {
+    color: var(--bad);
   }
   .option:disabled {
     cursor: default;

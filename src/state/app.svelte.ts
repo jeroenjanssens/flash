@@ -9,6 +9,7 @@ import {
   saveProfiles,
   storeSave,
 } from '../lib/storage/persistence'
+import { tombstone } from '../lib/storage/profileFile'
 import { emptySave, type Profile, type ProfileSave, type Settings } from '../lib/storage/schema'
 
 /**
@@ -80,12 +81,13 @@ export function updateProfile(
   saveProfiles($state.snapshot(app.profiles) as Profile[])
 }
 
+/** Remove a profile and all of its progress (other devices remove it when they sync). */
 export function deleteProfile(id: string): void {
   const now = Date.now()
-  app.profiles = app.profiles.map((p) =>
-    p.id === id ? { ...p, deletedAt: now, updatedAt: now } : p,
-  )
+  app.profiles = app.profiles.map((p) => (p.id === id ? tombstone(p, now) : p))
   saveProfiles($state.snapshot(app.profiles) as Profile[])
+  // Changes that weren't written yet mustn't bring the progress back.
+  if (unsaved?.profileId === id) unsaved = undefined
   removeSave(id)
   if (app.save?.profileId === id) {
     const next = visibleProfiles()[0]
@@ -99,6 +101,8 @@ export function deleteProfile(id: string): void {
 export function replaceFamily(profiles: Profile[], saves: Record<string, ProfileSave>): void {
   saveProfiles(profiles)
   for (const s of Object.values(saves)) storeSave(s)
+  // Removed on another device (or in a restored backup): remove the progress here too.
+  for (const p of profiles) if (p.deletedAt) removeSave(p.id)
   app.profiles = profiles
   const id = app.save?.profileId
   if (id && saves[id]) app.save = saves[id]
@@ -118,6 +122,11 @@ let unsaved: ProfileSave | undefined
 
 function flush(): void {
   if (!unsaved) return
+  const id = unsaved.profileId
+  if (app.profiles.some((p) => p.id === id && p.deletedAt)) {
+    unsaved = undefined
+    return
+  }
   try {
     storeSave(unsaved)
     unsaved = undefined

@@ -11,7 +11,7 @@
   import type { Card, Method } from '../lib/deck/types'
   import { applyAnswer } from '../lib/study/apply'
   import type { Answer } from '../lib/study/grade'
-  import { cardsInSet, type CardSet } from '../lib/study/sets'
+  import { cardsInSet, defaultSet, isFixedSet, type CardSet } from '../lib/study/sets'
   import { bestSprint } from '../lib/study/stats'
   import { audio, save } from '../state/app.svelte'
   import type { LoadedDeck } from '../state/decks.svelte'
@@ -27,16 +27,16 @@
   const PENALTY = 2000
   const templates = $derived(deck.templates.filter((x) => x.methods?.some((m) => m !== 'flip')))
   let template = $state((() => templates[0]?.id ?? '')())
-  let set = $state<CardSet>('all')
+  let set = $state<CardSet>((() => defaultSet(deck, s))())
   let minutes = $state(1)
   let method = $state<Method>('choose')
   const tpl = $derived(deck.templates.find((x) => x.id === template))
   const methods = $derived<Method[]>((tpl?.methods ?? []).filter((m) => m !== 'flip'))
   const effective = $derived<Method>(methods.includes(method) ? method : (methods[0] ?? 'choose'))
-  const pool = $derived(tpl ? cardsInSet(deck, tpl, 'all', s) : [])
+  const pool = $derived(tpl ? cardsInSet(deck, tpl, set, s) : [])
   const best = $derived(
-    tpl
-      ? bestSprint(s.sprints, { deck: deck.id, template: tpl.id, method: effective, minutes })
+    tpl && isFixedSet(set)
+      ? bestSprint(s.sprints, { deck: deck.id, set, template: tpl.id, method: effective, minutes })
       : undefined,
   )
 
@@ -89,13 +89,14 @@
     s.sprints.push({
       t: Date.now(),
       deck: deck.id,
+      set,
       template: tpl!.id,
       method: effective,
       minutes,
       score,
       wrong,
     })
-    record = score > 0 && (previousBest === undefined || score > previousBest)
+    record = isFixedSet(set) && score > 0 && (previousBest === undefined || score > previousBest)
     audio.sfx(record && previousBest !== undefined ? 'record' : 'done')
   }
 
@@ -114,7 +115,7 @@
     <Header back={href(`deck/${deck.id}`)} title={t('sprint.title')} />
     <div class="panel stack">
       <p class="muted">{t('sprint.text')}</p>
-      <SetupPicker {deck} {templates} bind:template bind:set showSet={false} />
+      <SetupPicker {deck} {templates} bind:template bind:set />
       <div class="row">
         <Segmented
           label={t('sprint.length')}
@@ -133,7 +134,11 @@
         {/if}
       </div>
       <p class="best">
-        <Icon name="trophy" />{best ? t('sprint.best', { score: best.score }) : t('sprint.noBest')}
+        <Icon name="trophy" />{!isFixedSet(set)
+          ? t('set.noRecords')
+          : best
+            ? t('sprint.best', { score: best.score })
+            : t('sprint.noBest')}
       </p>
       <button class="btn primary big" onclick={start} disabled={pool.length < 2}>
         <Icon name="stopwatch" />{t('common.start')}
@@ -183,7 +188,9 @@
         ...(minutes > 1
           ? [{ label: t('sprint.perMinute'), value: formatNumber(score / minutes, 1) }]
           : []),
-        { label: t('sprint.bestLabel'), value: String(Math.max(score, previousBest ?? 0)) },
+        ...(isFixedSet(set)
+          ? [{ label: t('sprint.bestLabel'), value: String(Math.max(score, previousBest ?? 0)) }]
+          : []),
       ]}
     >
       {#snippet actions()}

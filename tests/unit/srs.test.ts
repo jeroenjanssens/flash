@@ -3,10 +3,12 @@ import { applyAnswer } from '../../src/lib/study/apply'
 import { capForTest, grade, retentionFor } from '../../src/lib/srs/scheduler'
 import {
   Session,
+  answersLeft,
   buildQueue,
   deckCounts,
   learnMethod,
   nextStage,
+  recordOf,
   spread,
 } from '../../src/lib/srs/queue'
 import { emptySave } from '../../src/lib/storage/schema'
@@ -90,20 +92,69 @@ describe('queue', () => {
 })
 
 describe('session progress', () => {
-  it('moves on every answer and counts finished questions', () => {
+  /** A Learn session as the app runs it: answers change the save, the session counts. */
+  function run(newPerDay: number) {
     const deck = testDeck()
     const save = emptySave('p')
-    save.settings.newPerDay = 2
-    const s = new Session(buildQueue([deck], save, NOW, 50))
-    expect([s.total, s.remaining, s.progress]).toEqual([4, 4, 0])
-    // A first good answer: the question comes back, so half done.
-    s.next(grade(undefined, 3, NOW), NOW)
-    expect(s.remaining).toBe(4)
-    expect(s.progress).toBe(0.125)
-    // A review that's due in days: finished.
-    s.next({ ...grade(undefined, 4, NOW), due: NOW + 5 * DAY }, NOW)
-    expect(s.remaining).toBe(3)
-    expect(s.progress).toBe(0.375)
+    save.settings.newPerDay = newPerDay
+    let now = NOW
+    const s = new Session(buildQueue([deck], save, now, 50), (item, repeats) =>
+      answersLeft(recordOf(save.decks[deck.id], item.card.id, item.template.id), repeats, now),
+    )
+    const answer = (correct: boolean) => {
+      const item = s.current!
+      const before = [s.done, s.total]
+      const record = applyAnswer(
+        save,
+        item,
+        { method: 'choose', correct, hints: 0, ms: 1000 },
+        'learn',
+        now,
+      )
+      s.next(record, now)
+      now += 30_000
+      return { before, after: [s.done, s.total] }
+    }
+    return { s, answer }
+  }
+
+  it('counts a new card twice: it comes back once after a right answer', () => {
+    expect(answersLeft(undefined, 0, NOW)).toBe(2)
+    expect(answersLeft(grade(undefined, 3, NOW), 1, NOW)).toBe(1)
+    expect(answersLeft({ ...grade(undefined, 4, NOW - 5 * DAY), due: NOW - DAY }, 0, NOW)).toBe(1)
+  })
+
+  it('counts up by one on every answer, and only grows after a mistake', () => {
+    const { s, answer } = run(2)
+    // Two new cards × two templates, each asked twice.
+    expect([s.done, s.total, s.progress]).toEqual([0, 8, 0])
+    const first = answer(true)
+    expect(first.after).toEqual([1, 8])
+    const wrong = answer(false)
+    expect(wrong.after[0]).toBe(2)
+    expect(wrong.after[1]).toBeGreaterThan(8)
+    while (s.current) {
+      const { before, after } = answer(true)
+      expect(after[0]).toBe(before[0] + 1)
+      expect(after[1]).toBe(before[1])
+    }
+    expect(s.done).toBe(s.total)
+    expect(s.progress).toBe(1)
+  })
+
+  it('a session without mistakes ends exactly at the total', () => {
+    const { s, answer } = run(5)
+    const total = s.total
+    while (s.current) answer(true)
+    expect([s.done, s.total]).toEqual([total, total])
+  })
+
+  it('undo restores the count', () => {
+    const { s, answer } = run(2)
+    const snap = s.snapshot()
+    answer(false)
+    s.restore(snap)
+    expect([s.done, s.total]).toEqual([0, 8])
   })
 })
 

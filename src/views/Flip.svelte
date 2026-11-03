@@ -10,7 +10,7 @@
   import type { Card } from '../lib/deck/types'
   import { applyAnswer } from '../lib/study/apply'
   import { shuffle } from '../lib/study/options'
-  import { cardsInSet, type CardSet } from '../lib/study/sets'
+  import { cardsInSet, defaultSet, type CardSet } from '../lib/study/sets'
   import { audio, save, settings } from '../state/app.svelte'
   import type { LoadedDeck } from '../state/decks.svelte'
   import { t } from '../state/i18n.svelte'
@@ -24,7 +24,7 @@
   const s = save()
   const templates = $derived(deck.templates)
   let template = $state((() => deck.templates[0]?.id ?? '')())
-  let set = $state<CardSet>('all')
+  let set = $state<CardSet>((() => defaultSet(deck, s))())
   const tpl = $derived(deck.templates.find((x) => x.id === template))
   const pool = $derived(tpl ? cardsInSet(deck, tpl, set, s) : [])
   const voice = $derived(pickVoice(deck.voices, s.settings.voice))
@@ -107,7 +107,9 @@
   {@const card = queue[index]}
   <div class="session">
     <SessionBar progress={index / queue.length} onclose={() => (phase = 'setup')}>
-      {#snippet right()}{queue.length - index}{/snippet}
+      {#snippet right()}<span aria-label={t('session.count', { done: index, total: queue.length })}
+          >{index} / {queue.length}</span
+        >{/snippet}
     </SessionBar>
     <main class="stage">
       {#key index}

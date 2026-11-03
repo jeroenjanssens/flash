@@ -2,7 +2,7 @@ import { activeTemplates, applies, isPictureAnswer } from '../deck/items'
 import type { Card, Deck, Method, Template } from '../deck/types'
 import type { AnswerStyle, DeckProgress, ItemRecord, ProfileSave } from '../storage/schema'
 import { HOUR, MINUTE, dayKey } from '../time'
-import { retrievability } from './scheduler'
+import { grade, retrievability } from './scheduler'
 
 /** A question in a session: a card, asked with a template, from a deck. */
 export interface SessionItem {
@@ -263,58 +263,90 @@ export function nextStage(
   return stage
 }
 
+/** A question comes back in the same session when it's due again within this time... */
+export const REPEAT_WITHIN = 20 * MINUTE
+/** ...at most this many extra times. */
+export const MAX_REPEATS = 3
+
+/**
+ * How many answers a question in the queue still needs if every answer from now on is right:
+ * this one, plus the times it comes back (a new card's learning steps, say).
+ */
+export function answersLeft(
+  record: ItemRecord | undefined,
+  repeats: number,
+  now: number,
+  testDate?: string,
+): number {
+  let n = 1
+  let r = record
+  let t = Math.max(now, record?.due ?? now)
+  for (let count = repeats; count < MAX_REPEATS; count++) {
+    r = grade(r, 3, t, testDate)
+    if (r.due - t >= REPEAT_WITHIN) break
+    n++
+    t = r.due
+  }
+  return n
+}
+
 /**
  * The questions of a running session. An item that's due again soon (a learning step, after a
- * wrong answer) comes back a few questions later, at most three extra times.
+ * wrong answer) comes back a few questions later, at most `MAX_REPEATS` extra times.
  */
 const sessionKey = (item: SessionItem) => `${item.deck.id}/${item.card.id}/${item.template.id}`
 
 export class Session {
   readonly queue: SessionItem[]
   private repeats = new Map<string, number>()
-  /** Questions that are finished for this session (they won't come back). */
-  private finished = new Set<string>()
-  /** The different questions in the session. */
-  readonly total: number
+  /** Answers given. */
   done = 0
-  constructor(items: SessionItem[]) {
+  /**
+   * @param expected How many answers a queued question still needs if it's answered right from
+   *   now on, given how often it came back already (see `answersLeft`). Without it, every
+   *   question counts once.
+   */
+  constructor(
+    items: SessionItem[],
+    private expected: (item: SessionItem, repeats: number) => number = () => 1,
+  ) {
     this.queue = [...items]
-    this.total = new Set(items.map(sessionKey)).size
   }
   get current(): SessionItem | undefined {
     return this.queue[0]
   }
   /** The state of the session, to go back to (undo). */
   snapshot() {
-    return {
-      queue: [...this.queue],
-      repeats: new Map(this.repeats),
-      finished: new Set(this.finished),
-      done: this.done,
-    }
+    return { queue: [...this.queue], repeats: new Map(this.repeats), done: this.done }
   }
   restore(snap: ReturnType<Session['snapshot']>): void {
     this.queue.splice(0, this.queue.length, ...snap.queue)
     this.repeats = new Map(snap.repeats)
-    this.finished = new Set(snap.finished)
     this.done = snap.done
   }
-  /** Answers still to give, repeats included. */
+  /** Answers still to give that are in the queue now, repeats included. */
   get left(): number {
     return this.queue.length
   }
-  /** Different questions that aren't finished yet: what a learner sees as "left". */
-  get remaining(): number {
-    return this.total - this.finished.size
-  }
   /**
-   * 0–1, moving on every answer: a finished question counts fully, one that was answered and
-   * comes back counts half.
+   * All answers of the session: the ones given plus the ones still expected. It only grows after
+   * a wrong answer (the question comes back once more than planned).
    */
+  get total(): number {
+    const seen = new Set<string>()
+    let n = this.done
+    for (const item of this.queue) {
+      const key = sessionKey(item)
+      if (seen.has(key)) continue
+      seen.add(key)
+      n += this.expected(item, this.repeats.get(key) ?? 0)
+    }
+    return n
+  }
+  /** 0–1: answers given out of all answers. */
   get progress(): number {
-    if (!this.total) return 1
-    const started = new Set([...this.repeats.keys()].filter((k) => !this.finished.has(k))).size
-    return (this.finished.size + started * 0.5) / this.total
+    const total = this.total
+    return total ? this.done / total : 1
   }
   /**
    * Where to put a question that comes back: `gap` questions on, or later if that would put it
@@ -335,12 +367,10 @@ export class Session {
     this.done++
     const key = sessionKey(item)
     const count = this.repeats.get(key) ?? 0
-    if (record && record.due - now < 20 * MINUTE && count < 3) {
+    if (record && record.due - now < REPEAT_WITHIN && count < MAX_REPEATS) {
       this.repeats.set(key, count + 1)
       const gap = record.due - now < 2 * MINUTE ? 3 : 6
       this.queue.splice(this.slot(item, gap), 0, { ...item, intro: false })
-    } else if (!this.queue.some((q) => sessionKey(q) === key)) {
-      this.finished.add(key)
     }
   }
 }

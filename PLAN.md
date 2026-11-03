@@ -33,7 +33,20 @@ sync and merge, FSRS scheduler, sprint and race, i18n, audio engine, charts).
 >   schedule with the real time, so morning and evening sessions both help. Plus "+5 nieuwe
 >   woorden" past the daily limit, 97% retention on the last two days before a test, and a nudge
 >   on the deck page then.
-> - **Tests:** 39 unit tests and 13 end-to-end tests, each on laptop, iPhone and iPad sizes.
+> - **The session counter counts up** (3 November): "answered / total", where the total is the
+>   answers still expected if everything goes right (a new word counts twice: it comes back once
+>   for its learning step), so it moves on every answer and only grows after a mistake. The old
+>   countdown only moved when a question was finished for the session.
+> - **"Al gezien"** (seen so far) in every mode, Sprint and Race included: cards answered at least
+>   once, in any direction or mode. "Nog aan het leren" is now seen but not mastered (it used to
+>   include cards never seen). The chips show counts; "seen so far" is the default from 4 seen
+>   cards. Sets that change as you learn keep no best scores.
+> - **Picture answers** show the word under the right picture, and under the wrong one chosen.
+> - **Profiles can be downloaded** (name, animal, colour and all progress) and imported again
+>   (merged if they're still here). Deleting asks first and offers to download; it removes the
+>   progress everywhere (also on other devices after a sync, and unsaved changes can no longer
+>   write it back), and the note kept to sync the removal no longer has the name, animal or colour.
+> - **Tests:** 63 unit tests and 19 end-to-end tests, each on laptop, iPhone and iPad sizes.
 
 Each decision lists a **default** (what I'll build unless you say otherwise) and the
 **alternatives**, with pros and cons. Open questions are numbered **Q1…** and collected at the end.

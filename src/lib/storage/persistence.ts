@@ -76,9 +76,14 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
 
 export function migrateProfiles(raw: unknown): Profile[] {
   if (!Array.isArray(raw)) return []
-  return raw.filter(
-    (p): p is Profile => isObject(p) && typeof p.id === 'string' && typeof p.name === 'string',
-  )
+  return raw
+    .filter(
+      (p): p is Profile => isObject(p) && typeof p.id === 'string' && typeof p.name === 'string',
+    )
+    .map((p) =>
+      // Removed profiles from before tombstones were stripped: forget who they were.
+      p.deletedAt ? { ...p, name: '', avatar: '', color: '' } : p,
+    )
 }
 
 function read(key: string): unknown {

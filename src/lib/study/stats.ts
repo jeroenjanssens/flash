@@ -184,12 +184,13 @@ export function misspellings(deck: Deck, log: ReviewEntry[], n = 10): Misspellin
 
 export function bestSprint(
   sprints: SprintRecord[],
-  match: Pick<SprintRecord, 'deck' | 'template' | 'method' | 'minutes'>,
+  match: Pick<SprintRecord, 'deck' | 'template' | 'method' | 'minutes'> & { set: string },
 ): SprintRecord | undefined {
   let best: SprintRecord | undefined
   for (const s of sprints)
     if (
       s.deck === match.deck &&
+      (s.set ?? 'all') === match.set &&
       s.template === match.template &&
       s.method === match.method &&
       s.minutes === match.minutes &&

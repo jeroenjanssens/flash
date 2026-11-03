@@ -143,7 +143,7 @@ test('flip cards turn over and count what you knew', async ({ page }) => {
   await page.getByRole('button', { name: /Start met 11 kaarten/ }).click()
   await page.getByRole('button', { name: 'Draai de kaart om' }).click()
   await page.getByRole('button', { name: /Wist ik!/ }).click()
-  await expect(page.locator('.session .right')).toHaveText('10')
+  await expect(page.locator('.session .right')).toHaveText('1 / 11')
 })
 
 test('the cards page shows every card with both voices', async ({ page }) => {
@@ -205,10 +205,11 @@ test('undo takes back the last answer in Learn', async ({ page }) => {
   await createProfile(page)
   await page.goto(`/#/deck/${deck.id}/learn`)
   await page.getByRole('button', { name: /Begrepen/ }).click()
-  await expect(page.locator('.session .right')).toContainText('20')
+  await expect(page.locator('.session .count')).toHaveText('0 / 40')
   await answer(page, false)
   await expect(page.getByText('Het antwoord is')).toBeVisible()
   await page.getByRole('button', { name: /ongedaan maken/ }).click()
+  await expect(page.locator('.session .count')).toHaveText('0 / 40')
   // The same question again, unanswered, and nothing was logged.
   await expect(page.getByText('Het antwoord is')).not.toBeVisible()
   await expect(page.locator('.option.is-wrong')).toHaveCount(0)
@@ -219,31 +220,89 @@ test('undo takes back the last answer in Learn', async ({ page }) => {
   expect(log).toBe(0)
 })
 
-test('the Learn counter and progress bar move on', async ({ page }) => {
+test('the Learn counter counts up on every answer', async ({ page }) => {
   await createProfile(page)
   await page.goto(`/#/deck/${deck.id}/learn`)
   const bar = page.getByRole('progressbar')
-  await expect(page.locator('.session .right')).toContainText('20')
+  const count = page.locator('.session .count')
+  // 10 new words × 2 directions, each asked twice (they come back once for the learning step).
+  await expect(count).toHaveText('0 / 40')
   await expect(bar).toHaveAttribute('aria-valuenow', '0')
-  await page.getByRole('button', { name: /Begrepen/ }).click()
-  await answer(page)
-  await page.getByRole('button', { name: /Verder/ }).click()
-  // A new card comes back once (its learning step), so the bar moves before the number does.
-  await expect(bar).not.toHaveAttribute('aria-valuenow', '0')
-  const before = Number(await bar.getAttribute('aria-valuenow'))
-  // New cards come back once to be typed; after about as many answers as new cards, the first
-  // questions are finished and the number goes down.
-  for (let i = 0; i < 10; i++) {
+  /** Answer the next question (after its introduction, if any). */
+  async function next(right: boolean) {
     await page.waitForTimeout(150)
-    if (await page.getByRole('button', { name: /Begrepen/ }).isVisible()) {
-      await page.getByRole('button', { name: /Begrepen/ }).click()
+    const gotIt = page.getByRole('button', { name: /Begrepen/ })
+    if (await gotIt.isVisible()) {
+      await gotIt.click()
       await page.waitForTimeout(150)
     }
-    await answer(page)
+    await answer(page, right)
     await page.getByRole('button', { name: /Verder/ }).click()
   }
-  expect(Number(await bar.getAttribute('aria-valuenow'))).toBeGreaterThan(before)
-  await expect(page.locator('.session .right')).not.toHaveText('20')
+  await next(true)
+  await expect(count).toHaveText('1 / 40')
+  await expect(bar).toHaveAttribute('aria-valuenow', String(Math.round(100 / 40)))
+  // A mistake: the word comes back once more than planned.
+  await next(false)
+  await expect(count).toHaveText('2 / 41')
+  for (let i = 3; i <= 12; i++) {
+    await next(true)
+    await expect(count).toHaveText(`${i} / 41`)
+  }
+})
+
+test('practice can use only the cards seen so far', async ({ page }) => {
+  await createProfile(page)
+  await page.goto(`/#/deck/${deck.id}/practice/type`)
+  await expect(page.getByRole('button', { name: /Al gezien 0/ })).toBeDisabled()
+  await expect(page.getByRole('button', { name: /Nog aan het leren 0/ })).toBeDisabled()
+  await page.goto(`/#/deck/${deck.id}/learn`)
+  await page.getByRole('button', { name: /Begrepen/ }).click()
+  await answer(page)
+  await page.goto(`/#/deck/${deck.id}/practice/type`)
+  await page.getByRole('button', { name: /Al gezien 1/ }).click()
+  await expect(page.getByRole('button', { name: /Start met 1 kaart/ })).toBeVisible()
+})
+
+test('a learner can be downloaded, deleted with all progress, and imported again', async ({
+  page,
+}) => {
+  await createProfile(page)
+  await page.goto(`/#/deck/${deck.id}/learn`)
+  await page.getByRole('button', { name: /Begrepen/ }).click()
+  await answer(page)
+  await page.goto('/#/parent')
+  const id = await page.evaluate(() => localStorage.getItem('flash:current'))
+  await page.getByRole('button', { name: 'Verwijderen' }).first().click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Florien verwijderen?' })).toBeVisible()
+  const download = page.waitForEvent('download')
+  await dialog.getByRole('button', { name: /Downloaden en verwijderen/ }).click()
+  const file = await download
+  expect(file.suggestedFilename()).toMatch(/^flash-florien-\d{4}-\d{2}-\d{2}\.json$/)
+  // Gone, progress and all: only an anonymous note of the removal is kept, to sync it.
+  await expect(page.getByText('Florien is verwijderd')).toBeVisible()
+  const stored = await page.evaluate((id) => {
+    return {
+      save: localStorage.getItem(`flash:save:${id}`),
+      profiles: JSON.parse(localStorage.getItem('flash:profiles') ?? '[]'),
+    }
+  }, id)
+  expect(stored.save).toBeNull()
+  expect(stored.profiles).toEqual([
+    expect.objectContaining({ id, name: '', deletedAt: expect.any(Number) }),
+  ])
+  // Back from the file, with the answer.
+  await page
+    .locator('label', { hasText: 'Iemand importeren' })
+    .locator('input')
+    .setInputFiles(await file.path())
+  await expect(page.getByText('Florien is toegevoegd')).toBeVisible()
+  const log = await page.evaluate(
+    (id) => JSON.parse(localStorage.getItem(`flash:save:${id}`) ?? '{}').log?.length ?? 0,
+    id,
+  )
+  expect(log).toBe(1)
 })
 
 test('the options stay in place after a wrong answer', async ({ page }) => {

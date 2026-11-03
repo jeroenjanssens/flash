@@ -10,3 +10,4 @@ __pycache__/
 .venv/
 voice-preview/
 .claude/scheduled_tasks.lock
+sound-preview/

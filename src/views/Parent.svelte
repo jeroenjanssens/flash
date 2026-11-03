@@ -6,6 +6,12 @@
   import { parseRepo } from '../lib/deck/library'
   import { mergeFamily } from '../lib/storage/gist'
   import { KEYS, loadProfiles, migrate, migrateProfiles } from '../lib/storage/persistence'
+  import {
+    addProfile,
+    profileFile,
+    profileFileName,
+    readProfileFile,
+  } from '../lib/storage/profileFile'
   import type { Profile, ProfileSave } from '../lib/storage/schema'
   import { answersToday, cardLevels, streak } from '../lib/study/stats'
   import {
@@ -140,6 +146,47 @@
     )
   }
 
+  /** Save one learner (name, animal, colour and progress) as a file. */
+  function exportProfile(p: Profile) {
+    flushSave()
+    const now = Date.now()
+    const s = familySaves()[p.id]
+    if (!s) return
+    download(
+      new Blob([JSON.stringify(profileFile($state.snapshot(p) as Profile, s, now))], {
+        type: 'application/json',
+      }),
+      profileFileName(p, now),
+    )
+  }
+
+  /** Add a learner from an exported file (merging if they're here already). */
+  function importProfile(file: { profile: Profile; save: ProfileSave }) {
+    flushSave()
+    const result = addProfile({ profiles: loadProfiles(), saves: familySaves() }, file, Date.now())
+    replaceFamily(result.family.profiles, result.family.saves)
+    toast(
+      t(result.kind === 'added' ? 'profiles.imported' : 'profiles.importMerged', {
+        name: file.profile.name,
+      }),
+    )
+    if (sync.connected) void syncNow()
+  }
+
+  async function onImportProfile(e: Event) {
+    const input = e.currentTarget as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+    try {
+      const incoming = readProfileFile(JSON.parse(await file.text()))
+      if (!incoming) throw new Error('not a profile')
+      importProfile(incoming)
+    } catch {
+      toast(t('profiles.importError'), 'error')
+    }
+  }
+
   async function restore(e: Event) {
     const input = e.currentTarget as HTMLInputElement
     const file = input.files?.[0]
@@ -147,6 +194,12 @@
     if (!file) return
     try {
       const raw = JSON.parse(await file.text())
+      // One learner's file works here too.
+      const one = readProfileFile(raw)
+      if (one) {
+        importProfile(one)
+        return
+      }
       const profiles: Profile[] = migrateProfiles(raw.profiles)
       if (!profiles.length) throw new Error('no profiles')
       const incoming: Record<string, ProfileSave> = {}
@@ -165,8 +218,24 @@
     }
   }
 
-  function remove(p: Profile) {
-    if (confirm(t('profiles.confirmDelete', { name: p.name }))) deleteProfile(p.id)
+  /** The profile being removed: a dialog asks first, and offers to save it as a file. */
+  let removing = $state<Profile>()
+  let dialog = $state<HTMLDialogElement>()
+  $effect(() => {
+    if (removing && dialog && !dialog.open) dialog.showModal()
+  })
+  function closeRemove() {
+    dialog?.close()
+    removing = undefined
+  }
+  function remove(download: boolean) {
+    const p = removing
+    if (!p) return
+    if (download) exportProfile(p)
+    deleteProfile(p.id)
+    closeRemove()
+    toast(t('profiles.deleted', { name: p.name }))
+    if (sync.connected) void syncNow()
   }
 
   const sourceLabel = {
@@ -175,6 +244,28 @@
     import: 'decks.imported',
   } as const
 </script>
+
+<dialog
+  bind:this={dialog}
+  class="remove panel stack"
+  onclose={() => (removing = undefined)}
+  aria-labelledby="remove-title"
+>
+  {#if removing}
+    <h2 id="remove-title">{t('profiles.deleteTitle', { name: removing.name })}</h2>
+    <p>{t('profiles.deleteText', { name: removing.name })}</p>
+    {#if sync.connected}<p class="muted small">{t('profiles.deleteGist')}</p>{/if}
+    <div class="row">
+      <button class="btn primary" onclick={() => remove(true)}
+        ><Icon name="download" />{t('profiles.downloadAndDelete')}</button
+      >
+      <button class="btn danger" onclick={() => remove(false)}
+        ><Icon name="trash" />{t('profiles.deleteOnly')}</button
+      >
+      <button class="btn ghost" onclick={closeRemove}>{t('common.cancel')}</button>
+    </div>
+  {/if}
+</dialog>
 
 <main class="page narrow">
   <Header back={href('')} title={t('nav.parent')} />
@@ -244,8 +335,14 @@
                 aria-label={t('common.edit')}><Icon name="edit" /></button
               >
               <button
+                class="btn icon ghost"
+                onclick={() => exportProfile(p)}
+                aria-label={t('profiles.export', { name: p.name })}
+                title={t('profiles.export', { name: p.name })}><Icon name="download" /></button
+              >
+              <button
                 class="btn icon ghost danger"
-                onclick={() => remove(p)}
+                onclick={() => (removing = p)}
                 aria-label={t('common.delete')}><Icon name="trash" /></button
               >
             </span>
@@ -263,9 +360,20 @@
           oncancel={() => (adding = false)}
         />
       {:else}
-        <button class="btn" onclick={() => (adding = true)}
-          ><Icon name="plus" />{t('profiles.add')}</button
-        >
+        <div class="row">
+          <button class="btn" onclick={() => (adding = true)}
+            ><Icon name="plus" />{t('profiles.add')}</button
+          >
+          <label class="btn">
+            <Icon name="upload" />{t('profiles.import')}
+            <input
+              class="sr-only"
+              type="file"
+              accept=".json,application/json"
+              onchange={onImportProfile}
+            />
+          </label>
+        </div>
       {/if}
     </section>
 
@@ -429,6 +537,14 @@
 </main>
 
 <style>
+  .remove {
+    max-width: min(480px, calc(100vw - 32px));
+    border: 0;
+    color: inherit;
+  }
+  .remove::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
   .kid {
     display: flex;
     gap: 14px;

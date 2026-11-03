@@ -19,6 +19,7 @@ export const en = {
   'common.start': 'Start',
   'common.undo': 'Undo the last answer (U)',
   'common.stop': 'Stop',
+  'session.count': '{done} of {total} answers',
 
   'profiles.welcome': 'Welcome to Flash!',
   'profiles.welcomeText':
@@ -31,7 +32,19 @@ export const en = {
   'profiles.color': 'Pick a colour',
   'profiles.otherDevice': 'Already using Flash on another device?',
   'profiles.connect': 'Connect this device',
-  'profiles.confirmDelete': 'Delete {name} and all of their progress?',
+  'profiles.deleteTitle': 'Delete {name}?',
+  'profiles.deleteText':
+    "All of {name}'s progress will be deleted, on this device and, after syncing, on the others. Download it first to keep a copy you can import later.",
+  'profiles.deleteGist':
+    "Older versions can stay in the sync gist's history on GitHub until you delete that gist.",
+  'profiles.downloadAndDelete': 'Download and delete',
+  'profiles.deleteOnly': 'Delete',
+  'profiles.deleted': '{name} was deleted',
+  'profiles.export': 'Download {name} with their progress',
+  'profiles.import': 'Import someone',
+  'profiles.imported': '{name} was added',
+  'profiles.importMerged': "{name}'s progress was merged",
+  'profiles.importError': "That's not a Flash profile",
 
   'home.morning': 'Good morning, {name}!',
   'home.afternoon': 'Hi {name}!',
@@ -123,8 +136,10 @@ export const en = {
   'setup.cards': 'Which cards',
   'setup.method': 'Answer by',
   'set.all': 'All',
+  'set.seen': 'Seen so far',
   'set.learning': 'Still learning',
   'set.list': 'Your mistakes',
+  'set.noRecords': 'No records with these cards: they change as you learn.',
   'method.type': 'typing',
   'method.choose': 'choosing',
   'method.flip': 'flipping',

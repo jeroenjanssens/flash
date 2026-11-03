@@ -55,6 +55,8 @@ export interface ReviewEntry {
 export interface SprintRecord {
   t: number
   deck: string
+  /** 'all' or a tag (missing in older records: 'all') */
+  set?: string
   template: string
   method: Method
   minutes: number

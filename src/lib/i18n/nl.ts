@@ -21,6 +21,7 @@ export const nl = {
   'common.start': 'Start',
   'common.undo': 'Laatste antwoord ongedaan maken (U)',
   'common.stop': 'Stoppen',
+  'session.count': '{done} van de {total} antwoorden',
 
   'profiles.welcome': 'Welkom bij Flash!',
   'profiles.welcomeText':
@@ -33,7 +34,19 @@ export const nl = {
   'profiles.color': 'Kies een kleur',
   'profiles.otherDevice': 'Gebruik je Flash al op een ander apparaat?',
   'profiles.connect': 'Koppel dit apparaat',
-  'profiles.confirmDelete': '{name} en alle voortgang verwijderen?',
+  'profiles.deleteTitle': '{name} verwijderen?',
+  'profiles.deleteText':
+    'Alle voortgang van {name} wordt verwijderd, op dit apparaat en na het synchroniseren ook op de andere. Download die eerst als je een kopie wilt bewaren om later te importeren.',
+  'profiles.deleteGist':
+    'Oudere versies kunnen in de geschiedenis van de sync-gist op GitHub blijven staan, tot je die gist verwijdert.',
+  'profiles.downloadAndDelete': 'Downloaden en verwijderen',
+  'profiles.deleteOnly': 'Verwijderen',
+  'profiles.deleted': '{name} is verwijderd',
+  'profiles.export': '{name} met alle voortgang downloaden',
+  'profiles.import': 'Iemand importeren',
+  'profiles.imported': '{name} is toegevoegd',
+  'profiles.importMerged': 'De voortgang van {name} is samengevoegd',
+  'profiles.importError': 'Dat is geen Flash-profiel',
 
   'home.morning': 'Goedemorgen, {name}!',
   'home.afternoon': 'Hoi {name}!',
@@ -126,8 +139,10 @@ export const nl = {
   'setup.cards': 'Welke kaarten',
   'setup.method': 'Antwoorden door',
   'set.all': 'Alle',
+  'set.seen': 'Al gezien',
   'set.learning': 'Nog aan het leren',
   'set.list': 'Je fouten',
+  'set.noRecords': 'Geen records met deze kaarten: ze veranderen terwijl je leert.',
   'method.type': 'typen',
   'method.choose': 'kiezen',
   'method.flip': 'omdraaien',

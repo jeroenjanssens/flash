@@ -12,7 +12,7 @@
   import { applyAnswer } from '../lib/study/apply'
   import type { Answer } from '../lib/study/grade'
   import { shuffle } from '../lib/study/options'
-  import { cardsInSet, type CardSet } from '../lib/study/sets'
+  import { cardsInSet, defaultSet, isFixedSet, type CardSet } from '../lib/study/sets'
   import { bestRace } from '../lib/study/stats'
   import { audio, save } from '../state/app.svelte'
   import type { LoadedDeck } from '../state/decks.svelte'
@@ -27,14 +27,14 @@
   const s = save()
   const templates = $derived(deck.templates.filter((x) => x.methods?.some((m) => m !== 'flip')))
   let template = $state((() => templates[0]?.id ?? '')())
-  let set = $state<CardSet>('all')
+  let set = $state<CardSet>((() => defaultSet(deck, s))())
   let method = $state<Method>('choose')
   const tpl = $derived(deck.templates.find((x) => x.id === template))
   const methods = $derived<Method[]>((tpl?.methods ?? []).filter((m) => m !== 'flip'))
   const effective = $derived<Method>(methods.includes(method) ? method : (methods[0] ?? 'choose'))
   const pool = $derived(tpl ? cardsInSet(deck, tpl, set, s) : [])
   const best = $derived(
-    tpl
+    tpl && isFixedSet(set)
       ? bestRace(s.races, { deck: deck.id, set, template: tpl.id, method: effective })
       : undefined,
   )
@@ -96,7 +96,7 @@
         ms: Math.round(elapsed),
         wrong,
       })
-      record = previousBest === undefined || elapsed < previousBest
+      record = isFixedSet(set) && (previousBest === undefined || elapsed < previousBest)
       audio.sfx(record && previousBest !== undefined ? 'record' : 'done')
       return
     }
@@ -110,7 +110,7 @@
     <Header back={href(`deck/${deck.id}`)} title={t('race.title')} />
     <div class="panel stack">
       <p class="muted">{t('race.text')}</p>
-      <SetupPicker {deck} {templates} bind:template bind:set allowLearning={false} />
+      <SetupPicker {deck} {templates} bind:template bind:set />
       {#if methods.length > 1 && !(tpl && isPictureAnswer(deck, tpl))}
         <Segmented
           label={t('setup.method')}
@@ -119,9 +119,11 @@
         />
       {/if}
       <p class="best">
-        <Icon name="trophy" />{best
-          ? t('race.best', { time: formatTime(best.ms, true) })
-          : t('race.noBest')}
+        <Icon name="trophy" />{!isFixedSet(set)
+          ? t('set.noRecords')
+          : best
+            ? t('race.best', { time: formatTime(best.ms, true) })
+            : t('race.noBest')}
       </p>
       <button class="btn primary big" onclick={start} disabled={!pool.length}>
         <Icon name="flag" />{t('race.start', { count: pool.length })}
@@ -163,10 +165,14 @@
       stats={[
         { label: t('race.time'), value: formatTime(elapsed, true) },
         { label: t('summary.wrong'), value: String(wrong) },
-        {
-          label: t('race.bestLabel'),
-          value: formatTime(Math.min(elapsed, previousBest ?? Infinity), true),
-        },
+        ...(isFixedSet(set)
+          ? [
+              {
+                label: t('race.bestLabel'),
+                value: formatTime(Math.min(elapsed, previousBest ?? Infinity), true),
+              },
+            ]
+          : []),
       ]}
     >
       {#snippet actions()}

@@ -8,6 +8,7 @@
   import type { Card } from '../lib/deck/types'
   import {
     Session,
+    answersLeft,
     buildQueue,
     learnMethod,
     recordOf,
@@ -43,12 +44,18 @@
       s.settings.sessionSize,
       { extra, newBonus },
     ),
+    (item, repeats) => {
+      const progress = s.decks[item.deck.id]
+      const record = recordOf(progress, item.card.id, item.template.id)
+      return answersLeft(record, repeats, Date.now(), progress?.testDate)
+    },
   )
-  const total = session.left
+  const size = session.left
   // The session object isn't reactive: mirror what the screen shows.
   let progress = $state(0)
-  let left = $state(session.remaining)
-  const sync = () => ([progress, left] = [session.progress, session.remaining])
+  let done = $state(0)
+  let total = $state(session.total)
+  const sync = () => ([progress, done, total] = [session.progress, session.done, session.total])
 
   let current = $state<SessionItem | undefined>(session.current)
   let showIntro = $state(!!session.current?.intro)
@@ -58,9 +65,9 @@
   let pending: ItemRecord | undefined
   let learned = $state(0)
   const mistakes = new Map<string, { loaded: LoadedDeck; card: Card }>()
-  let finished = $state(total === 0)
+  let finished = $state(size === 0)
 
-  sessionState.active = total > 0
+  sessionState.active = size > 0
   onDestroy(() => (sessionState.active = false))
 
   const loaded = $derived(current ? deckById(current.deck.id) : undefined)
@@ -178,7 +185,7 @@
 
 {#if finished}
   <main class="page narrow">
-    {#if total === 0}
+    {#if size === 0}
       <Summary title={extra ? t('extra.nothing') : t('learn.nothing')} stats={[]}>
         {#snippet actions()}
           {#if canExtra}<a class="btn big" href={again}>{t('extra.button')}</a>{/if}
@@ -231,7 +238,9 @@
               <Icon name="undo" />
             </button>
           {/if}
-          <span>{left}</span>
+          <span class="count" aria-label={t('session.count', { done, total })}
+            >{done} / {total}</span
+          >
         </span>
       {/snippet}
     </SessionBar>
