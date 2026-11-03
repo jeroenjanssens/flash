@@ -43,7 +43,19 @@ export class AudioEngine {
       // Decode the flips now, so the first one plays without a delay.
       for (const url of FLIPS) void this.load(url)
     }
-    if (this.ctx.state !== 'running') void this.ctx.resume().catch(() => {})
+    if (this.ctx.state !== 'running') {
+      void this.ctx.resume().catch(() => {})
+      // WebKit only lets the context make sound once something has played during a tap, so
+      // play a moment of silence (resuming alone isn't always enough on iPad and iPhone).
+      try {
+        const source = this.ctx.createBufferSource()
+        source.buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate)
+        source.connect(this.ctx.destination)
+        source.start()
+      } catch {
+        // Not allowed yet: the next tap tries again.
+      }
+    }
   }
 
   private load(url: string): Promise<AudioBuffer | undefined> {
