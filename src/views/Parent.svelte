@@ -3,7 +3,9 @@
   import Header from '../components/Header.svelte'
   import Icon from '../components/Icon.svelte'
   import ProfileForm from '../components/ProfileForm.svelte'
+  import Scanner from '../components/Scanner.svelte'
   import { parseRepo } from '../lib/deck/library'
+  import type { Pairing } from '../lib/pairing'
   import { mergeFamily } from '../lib/storage/gist'
   import { KEYS, loadProfiles, migrate, migrateProfiles } from '../lib/storage/persistence'
   import {
@@ -51,6 +53,7 @@
   let repo = $state(localStorage.getItem(KEYS.deckRepo) ?? '')
   let busy = $state(false)
   let showPair = $state(false)
+  let scanning = $state(false)
   const link = $derived(showPair && sync.connected ? pairingLink() : undefined)
   const qr = $derived(link ? renderSVG(link, { border: 2 }) : '')
 
@@ -62,6 +65,16 @@
     busy = false
     toast(ok ? t('sync.connected') : t(`sync.error.${sync.error || 'http'}`), ok ? 'info' : 'error')
     if (ok) token = ''
+  }
+
+  /** Connect with a pairing QR code scanned from another device. */
+  async function connectScanned(p: Pairing) {
+    scanning = false
+    busy = true
+    const ok = await connect(p.token, p.gist, p.repo)
+    busy = false
+    if (ok && p.repo) repo = p.repo
+    toast(ok ? t('pair.done') : t(`sync.error.${sync.error || 'http'}`), ok ? 'info' : 'error')
   }
 
   async function saveRepo() {
@@ -426,6 +439,19 @@
         {/if}
       {:else}
         <p class="muted">{t('sync.intro')}</p>
+        {#if scanning}
+          <Scanner onscan={connectScanned} onclose={() => (scanning = false)} />
+        {:else}
+          <div class="row">
+            <button
+              class="btn primary"
+              type="button"
+              disabled={busy}
+              onclick={() => (scanning = true)}><Icon name="qr" />{t('scan.start')}</button
+            >
+          </div>
+          <p class="muted small">{t('scan.or')}</p>
+        {/if}
         <ol class="small steps">
           <!-- eslint-disable-next-line svelte/no-at-html-tags -- our own translation, with a link -->
           <li>{@html t('sync.step1')}</li>

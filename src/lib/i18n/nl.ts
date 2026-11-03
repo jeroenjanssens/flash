@@ -300,6 +300,14 @@ export const nl = {
   'backup.restored': 'Reservekopie teruggezet',
   'backup.error': 'Dit is geen reservekopie van Flash',
 
+  'scan.start': 'QR-code scannen',
+  'scan.or':
+    'Op het andere apparaat: Voor ouders → Synchroniseren → Apparaat koppelen. Of de eerste keer, koppel met een token:',
+  'scan.hint': 'Richt de camera op de QR-code.',
+  'scan.wrong': 'Dat is geen QR-code van Flash. Gebruik Apparaat koppelen op het andere apparaat.',
+  'scan.denied':
+    'Flash mag de camera niet gebruiken. Sta het toe in Instellingen, of plak hieronder het token.',
+  'scan.unavailable': 'De camera kon niet starten. Plak hieronder het token.',
   'pair.busy': 'Koppelen…',
   'pair.done': 'Dit apparaat is gekoppeld!',
   'pair.failed': 'Koppelen lukte niet',

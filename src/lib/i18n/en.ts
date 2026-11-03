@@ -296,6 +296,14 @@ export const en = {
   'backup.restored': 'Backup restored',
   'backup.error': "That's not a Flash backup",
 
+  'scan.start': 'Scan QR code',
+  'scan.or':
+    'On the other device: For parents → Sync → Connect a device. Or the first time, connect with a token:',
+  'scan.hint': 'Point the camera at the QR code.',
+  'scan.wrong': "That's not a Flash QR code. Use Connect a device on the other device.",
+  'scan.denied':
+    "Flash isn't allowed to use the camera. Allow it in Settings, or paste the token below.",
+  'scan.unavailable': "Couldn't start the camera. Paste the token below instead.",
   'pair.busy': 'Connecting…',
   'pair.done': 'This device is connected!',
   'pair.failed': "Couldn't connect",
