@@ -1,0 +1,17 @@
+{
+  "page-flip-1.mp3": {
+    "source": "Kenney, RPG Audio (bookFlip1.ogg), https://kenney.nl/assets/rpg-audio",
+    "license": "CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/",
+    "changes": "Trimmed silence, normalised loudness, converted to MP3"
+  },
+  "page-flip-2.mp3": {
+    "source": "Kenney, RPG Audio (bookFlip2.ogg), https://kenney.nl/assets/rpg-audio",
+    "license": "CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/",
+    "changes": "Trimmed silence, normalised loudness, converted to MP3"
+  },
+  "page-flip-3.mp3": {
+    "source": "Kenney, RPG Audio (bookFlip3.ogg), https://kenney.nl/assets/rpg-audio",
+    "license": "CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/",
+    "changes": "Trimmed silence, normalised loudness, converted to MP3"
+  }
+}

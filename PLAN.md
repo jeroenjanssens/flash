@@ -46,7 +46,9 @@ sync and merge, FSRS scheduler, sprint and race, i18n, audio engine, charts).
 >   (merged if they're still here). Deleting asks first and offers to download; it removes the
 >   progress everywhere (also on other devices after a sync, and unsaved changes can no longer
 >   write it back), and the note kept to sync the removal no longer has the name, animal or colour.
-> - **Tests:** 63 unit tests and 19 end-to-end tests, each on laptop, iPhone and iPad sizes.
+> - **Turning a card sounds like paper:** three recorded page flips from Kenney's RPG Audio
+>   (CC0, see `public/sfx/sources.json`), at random but never the same one twice in a row.
+> - **Tests:** 65 unit tests and 19 end-to-end tests, each on laptop, iPhone and iPad sizes.
 
 Each decision lists a **default** (what I'll build unless you say otherwise) and the
 **alternatives**, with pros and cons. Open questions are numbered **Q1…** and collected at the end.

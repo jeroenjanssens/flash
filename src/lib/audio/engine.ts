@@ -1,8 +1,20 @@
 /**
  * Sound: pronunciation clips (decoded once, played through Web Audio, which works reliably on
  * iOS once unlocked by a tap), speech synthesis as a fallback for decks without audio, and small
- * synthesised sound effects, so there are no sound files to license.
+ * sound effects: synthesised, except for turning a card, which uses recordings of a page flip
+ * (public domain, see public/sfx/sources.json).
  */
+
+/** Page flips (Kenney's RPG Audio, CC0). */
+const FLIPS = [1, 2, 3].map((n) => `${import.meta.env.BASE_URL}sfx/page-flip-${n}.mp3`)
+
+/** A random one of `count` samples, but never `last` (the one played just before). */
+export function nextSample(last: number, count: number, random = Math.random): number {
+  if (count < 2) return 0
+  if (last < 0 || last >= count) return Math.floor(random() * count)
+  const i = Math.floor(random() * (count - 1))
+  return i >= last ? i + 1 : i
+}
 
 export type Sfx = 'correct' | 'wrong' | 'close' | 'flip' | 'tap' | 'done' | 'record' | 'tick'
 
@@ -10,6 +22,7 @@ export class AudioEngine {
   private ctx: AudioContext | undefined
   private buffers = new Map<string, Promise<AudioBuffer | undefined>>()
   private playing: AudioBufferSourceNode | undefined
+  private lastFlip = -1
   sounds = true
 
   /** Create or resume the audio context. Call on every user gesture (autoplay policies). */
@@ -27,6 +40,8 @@ export class AudioEngine {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
       if (!Ctx) return
       this.ctx = new Ctx()
+      // Decode the flips now, so the first one plays without a delay.
+      for (const url of FLIPS) void this.load(url)
     }
     if (this.ctx.state !== 'running') void this.ctx.resume().catch(() => {})
   }
@@ -149,21 +164,18 @@ export class AudioEngine {
         tone(185, 0.12, 0.32, 'sine', 0.16)
         break
       case 'flip': {
-        const len = 0.12
-        const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * len), ctx.sampleRate)
-        const data = noise.getChannelData(0)
-        for (let i = 0; i < data.length; i++)
-          data[i] = (Math.random() * 2 - 1) * (1 - i / data.length)
-        const src = ctx.createBufferSource()
-        const filter = ctx.createBiquadFilter()
-        const g = ctx.createGain()
-        src.buffer = noise
-        filter.type = 'bandpass'
-        filter.frequency.setValueAtTime(1800, t)
-        filter.frequency.exponentialRampToValueAtTime(5000, t + len)
-        g.gain.value = 0.25
-        src.connect(filter).connect(g).connect(ctx.destination)
-        src.start(t)
+        const i = nextSample(this.lastFlip, FLIPS.length)
+        this.lastFlip = i
+        void this.load(FLIPS[i]).then((buffer) => {
+          if (!buffer) return
+          // On its own, so it doesn't stop a word that's being said.
+          const src = ctx.createBufferSource()
+          const g = ctx.createGain()
+          src.buffer = buffer
+          g.gain.value = 0.7
+          src.connect(g).connect(ctx.destination)
+          src.start()
+        })
         break
       }
       case 'tap':
